@@ -97,6 +97,7 @@ export default function BinaCoreApp() {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<TabValue>('dashboard');
+  const [mounted, setMounted] = useState(false);
 
   // Data
   const [projects, setProjects] = useState<Project[]>([]);
@@ -159,6 +160,7 @@ export default function BinaCoreApp() {
   };
 
   useEffect(() => {
+    setMounted(true);
     loadData();
   }, []);
 
@@ -390,7 +392,7 @@ export default function BinaCoreApp() {
               size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              {mounted && (theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />)}
               <span className="sr-only">{t.settings.theme}</span>
             </Button>
           </div>
