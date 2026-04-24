@@ -9,6 +9,7 @@ import {
   FileText,
   AlertTriangle,
   Settings,
+  Layers,
   Menu,
   Eye,
   Pencil,
@@ -72,6 +73,11 @@ import {
   createProject,
   updateProject,
   deleteProject as deleteProjectStorage,
+  Floor,
+  getFloors,
+  createFloor,
+  updateFloor,
+  deleteFloor as deleteFloorStorage,
   Report,
   getReports,
   createReport,
@@ -90,7 +96,7 @@ import {
   CET,
 } from '@/lib/storage';
 
-type TabValue = 'dashboard' | 'projects' | 'reports' | 'problems' | 'settings';
+type TabValue = 'dashboard' | 'projects' | 'floors' | 'reports' | 'problems' | 'settings';
 
 export default function BinaCoreApp() {
   const { t, language, setLanguage } = useLanguage();
@@ -101,24 +107,27 @@ export default function BinaCoreApp() {
 
   // Data
   const [projects, setProjects] = useState<Project[]>([]);
+  const [floors, setFloors] = useState<Floor[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [problems, setProblems] = useState<Problem[]>([]);
 
   // Dialog states
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [projectPasswordDialogOpen, setProjectPasswordDialogOpen] = useState(false);
+  const [floorDialogOpen, setFloorDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [problemDialogOpen, setProblemDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Form states
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [editingFloor, setEditingFloor] = useState<Floor | null>(null);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
   const [editingProblem, setEditingProblem] = useState<Problem | null>(null);
   const [selectedProjectForView, setSelectedProjectForView] = useState<Project | null>(null);
   const [projectPassword, setProjectPassword] = useState('');
   const [deletingItem, setDeletingItem] = useState<{
-    type: 'project' | 'report' | 'problem';
+    type: 'project' | 'floor' | 'report' | 'problem';
     id: string;
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -153,8 +162,21 @@ export default function BinaCoreApp() {
     status: 'open' as const,
   });
 
+  // Floor form
+  const [floorForm, setFloorForm] = useState({
+    projectId: '',
+    floorNumber: '',
+    floorName: '',
+    rebarInspectionDate: '',
+    concretePouringDate: '',
+    ces: { inspected: false, date: '', notes: '' } as CES,
+    cet: { inspected: false, date: '', notes: '' } as CET,
+    status: 'notStarted' as const,
+  });
+
   const loadData = () => {
     setProjects(getProjects());
+    setFloors(getFloors());
     setReports(getReports());
     setProblems(getProblems());
   };
@@ -179,8 +201,6 @@ export default function BinaCoreApp() {
       password: projectForm.password,
       buildingType: projectForm.buildingType,
       numberOfFloors: parseInt(projectForm.numberOfFloors),
-      rebarInspectionDate: projectForm.rebarInspectionDate || null,
-      concretePouringDate: projectForm.concretePouringDate || null,
       ces: projectForm.ces.inspected ? {
         inspected: true,
         date: projectForm.ces.date || null,
@@ -215,8 +235,6 @@ export default function BinaCoreApp() {
       password: '',
       buildingType: 'immeuble',
       numberOfFloors: '',
-      rebarInspectionDate: '',
-      concretePouringDate: '',
       ces: { inspected: false, date: '', notes: '' },
       cet: { inspected: false, date: '', notes: '' },
     });
@@ -250,6 +268,8 @@ export default function BinaCoreApp() {
 
     if (deletingItem.type === 'project') {
       deleteProjectStorage(deletingItem.id);
+    } else if (deletingItem.type === 'floor') {
+      deleteFloorStorage(deletingItem.id);
     } else if (deletingItem.type === 'report') {
       deleteReportStorage(deletingItem.id);
     } else if (deletingItem.type === 'problem') {
@@ -356,6 +376,64 @@ export default function BinaCoreApp() {
     });
   };
 
+  const handleSaveFloor = () => {
+    if (!floorForm.projectId || !floorForm.floorNumber || !floorForm.floorName) {
+      toast({
+        title: t.common.error,
+        description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const floorData: Omit<Floor, 'id' | 'createdAt' | 'updatedAt'> = {
+      projectId: floorForm.projectId,
+      floorNumber: parseInt(floorForm.floorNumber),
+      floorName: floorForm.floorName,
+      rebarInspectionDate: floorForm.rebarInspectionDate || null,
+      concretePouringDate: floorForm.concretePouringDate || null,
+      ces: floorForm.ces.inspected ? {
+        inspected: true,
+        date: floorForm.ces.date || null,
+        notes: floorForm.ces.notes,
+      } : null,
+      cet: floorForm.cet.inspected ? {
+        inspected: true,
+        date: floorForm.cet.date || null,
+        notes: floorForm.cet.notes,
+      } : null,
+      status: floorForm.status,
+    };
+
+    if (editingFloor) {
+      updateFloor(editingFloor.id, floorData);
+    } else {
+      createFloor(floorData);
+    }
+
+    loadData();
+    resetFloorForm();
+    setFloorDialogOpen(false);
+    toast({
+      title: t.common.success,
+      description: editingFloor ? language === 'fr' ? 'Étage mis à jour' : 'Floor updated' : language === 'fr' ? 'Étage créé' : 'Floor created',
+    });
+  };
+
+  const resetFloorForm = () => {
+    setEditingFloor(null);
+    setFloorForm({
+      projectId: '',
+      floorNumber: '',
+      floorName: '',
+      rebarInspectionDate: '',
+      concretePouringDate: '',
+      ces: { inspected: false, date: '', notes: '' },
+      cet: { inspected: false, date: '', notes: '' },
+      status: 'notStarted',
+    });
+  };
+
   const filteredProblems = problems.filter(p => {
     const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -363,10 +441,12 @@ export default function BinaCoreApp() {
     return matchesSearch && matchesStatus;
   });
 
-  const getProjectName = (projectId: string) => {
-    const project = projects.find(p => p.id === projectId);
-    return project?.name || '-';
-  };
+  const filteredProblems = problems.filter(p => {
+    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         p.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground pb-16">
@@ -504,8 +584,6 @@ export default function BinaCoreApp() {
                                 password: project.password,
                                 buildingType: project.buildingType,
                                 numberOfFloors: project.numberOfFloors.toString(),
-                                rebarInspectionDate: project.rebarInspectionDate || '',
-                                concretePouringDate: project.concretePouringDate || '',
                                 ces: project.ces || { inspected: false, date: '', notes: '' },
                                 cet: project.cet || { inspected: false, date: '', notes: '' },
                               }); setProjectDialogOpen(true); }}>
@@ -564,6 +642,85 @@ export default function BinaCoreApp() {
                     </Card>
                   );
                 })}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Floors Tab */}
+          <TabsContent value="floors" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-bold">{t.floors.title}</h2>
+              <Button onClick={() => { resetFloorForm(); setFloorDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-2" />
+                {t.floors.addFloor}
+              </Button>
+            </div>
+
+            {floors.length === 0 ? (
+              <Card className="p-12 text-center">
+                <Layers className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <p className="text-lg text-muted-foreground">{t.floors.noFloors}</p>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {floors.map((floor) => (
+                  <Card key={floor.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-lg">{floor.floorName}</CardTitle>
+                        <Badge className={
+                          floor.status === 'completed' ? 'bg-green-500 hover:bg-green-600' :
+                          floor.status === 'inProgress' ? 'bg-orange-500 hover:bg-orange-600' :
+                          'bg-gray-500 hover:bg-gray-600'
+                        }>
+                          {t.floors.statuses[floor.status]}
+                        </Badge>
+                      </div>
+                      <CardDescription>
+                        {t.floors.floorNumber} {floor.floorNumber} • {getProjectName(floor.projectId)}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-muted-foreground text-xs">{t.floors.rebarInspectionDate}</p>
+                          <p className="font-medium">{formatDate(floor.rebarInspectionDate, language)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-xs">{t.floors.concretePouringDate}</p>
+                          <p className="font-medium">{formatDate(floor.concretePouringDate, language)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={floor.ces?.inspected || false}
+                          disabled
+                          className="h-4 w-4"
+                        />
+                        <span className="text-sm text-muted-foreground">CES</span>
+                        {floor.ces?.inspected && (
+                          <Badge className="ml-2">{formatDate(floor.ces.date, language)}</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={floor.cet?.inspected || false}
+                          disabled
+                          className="h-4 w-4"
+                        />
+                        <span className="text-sm text-muted-foreground">CET</span>
+                        {floor.cet?.inspected && (
+                          <Badge className="ml-2">{formatDate(floor.cet.date, language)}</Badge>
+                        )}
+                      </div>
+                      {floor.notes && (
+                        <p className="text-sm text-muted-foreground">{floor.notes}</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             )}
           </TabsContent>
@@ -900,6 +1057,15 @@ export default function BinaCoreApp() {
           >
             <AlertTriangle className="h-5 w-5" />
             <span className="text-[10px] mt-1">{t.navigation.problems}</span>
+          </Button>
+          <Button
+            variant={activeTab === 'floors' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setActiveTab('floors')}
+            className="flex-col h-14 w-14"
+          >
+            <Layers className="h-5 w-5" />
+            <span className="text-[10px] mt-1">{t.navigation.floors}</span>
           </Button>
           <Button
             variant={activeTab === 'settings' ? 'default' : 'ghost'}
@@ -1261,6 +1427,177 @@ export default function BinaCoreApp() {
               {t.common.cancel}
             </Button>
             <Button onClick={handleSaveProblem}>{t.common.save}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Floor Dialog */}
+      <Dialog open={floorDialogOpen} onOpenChange={setFloorDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingFloor ? t.floors.editFloor : t.floors.addFloor}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="floorProject">{t.reports.linkProject} *</Label>
+                <Select
+                  value={floorForm.projectId}
+                  onValueChange={(value) => setFloorForm({ ...floorForm, projectId: value })}
+                >
+                  <SelectTrigger id="floorProject">
+                    <SelectValue placeholder={language === 'fr' ? 'Sélectionner un projet' : 'Select a project'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
+                  <Label htmlFor="floorNumber">{t.floors.floorNumber} *</Label>
+                  <Input
+                    id="floorNumber"
+                    type="number"
+                    min="1"
+                    value={floorForm.floorNumber}
+                    onChange={(e) => setFloorForm({ ...floorForm, floorNumber: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="floorName">{t.floors.floorName} *</Label>
+                  <Input
+                    id="floorName"
+                    value={floorForm.floorName}
+                    onChange={(e) => setFloorForm({ ...floorForm, floorName: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="floorRebarDate">{t.floors.rebarInspectionDate}</Label>
+                <Input
+                  id="floorRebarDate"
+                  type="date"
+                  value={floorForm.rebarInspectionDate}
+                  onChange={(e) => setFloorForm({ ...floorForm, rebarInspectionDate: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="floorConcreteDate">{t.floors.concretePouringDate}</Label>
+                <Input
+                  id="floorConcreteDate"
+                  type="date"
+                  value={floorForm.concretePouringDate}
+                  onChange={(e) => setFloorForm({ ...floorForm, concretePouringDate: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="floorStatus">{t.floors.status}</Label>
+                <Select
+                  value={floorForm.status}
+                  onValueChange={(value: any) => setFloorForm({ ...floorForm, status: value })}
+                >
+                  <SelectTrigger id="floorStatus">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="notStarted">{t.floors.statuses.notStarted}</SelectItem>
+                    <SelectItem value="inProgress">{t.floors.statuses.inProgress}</SelectItem>
+                    <SelectItem value="completed">{t.floors.statuses.completed}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="floorNotes">{t.floors.notes}</Label>
+                <Textarea
+                  id="floorNotes"
+                  value={floorForm.notes || ''}
+                  onChange={(e) => setFloorForm({ ...floorForm, notes: e.target.value })}
+                  rows={3}
+                />
+              </div>
+            </div>
+            
+            {/* CES/CET Section */}
+            <div className="border-t pt-4">
+              <h3 className="font-semibold mb-4">{t.floors.cesCet.title}</h3>
+              <div className="space-y-4">
+                <div className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="cesInspected"
+                      checked={floorForm.ces.inspected}
+                      onChange={(e) => setFloorForm({ ...floorForm, ces: { ...floorForm.ces, inspected: e.target.checked } })}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="cesInspected" className="font-medium">{t.floors.cesCet.ces}</Label>
+                  </div>
+                  {floorForm.ces.inspected && (
+                    <>
+                      <div className="space-y-2">
+                        <Input
+                          type="date"
+                          value={floorForm.ces.date || ''}
+                          onChange={(e) => setFloorForm({ ...floorForm, ces: { ...floorForm.ces, date: e.target.value } })}
+                        />
+                        <Textarea
+                          value={floorForm.ces.notes || ''}
+                          onChange={(e) => setFloorForm({ ...floorForm, ces: { ...floorForm.ces, notes: e.target.value } })}
+                          rows={2}
+                          placeholder={language === 'fr' ? 'Notes CES...' : 'CES notes...'}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="cetInspected"
+                      checked={floorForm.cet.inspected}
+                      onChange={(e) => setFloorForm({ ...floorForm, cet: { ...floorForm.cet, inspected: e.target.checked } })}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="cetInspected" className="font-medium">{t.floors.cesCet.cet}</Label>
+                  </div>
+                  {floorForm.cet.inspected && (
+                    <>
+                      <div className="space-y-2">
+                        <Input
+                          type="date"
+                          value={floorForm.cet.date || ''}
+                          onChange={(e) => setFloorForm({ ...floorForm, cet: { ...floorForm.cet, date: e.target.value } })}
+                        />
+                        <Textarea
+                          value={floorForm.cet.notes || ''}
+                          onChange={(e) => setFloorForm({ ...floorForm, cet: { ...floorForm.cet, notes: e.target.value } })}
+                          rows={2}
+                          placeholder={language === 'fr' ? 'Notes CET...' : 'CET notes...'}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { resetFloorForm(); setFloorDialogOpen(false); }}>
+              {t.common.cancel}
+            </Button>
+            <Button onClick={handleSaveFloor}>{t.common.save}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -40,6 +40,34 @@ export type Translations = {
       other: string;
     };
   };
+  floors: {
+    title: string;
+    addFloor: string;
+    editFloor: string;
+    viewFloor: string;
+    deleteFloor: string;
+    shareFloor: string;
+    floorName: string;
+    floorNumber: string;
+    rebarInspectionDate: string;
+    concretePouringDate: string;
+    notes: string;
+    status: string;
+    statuses: {
+      notStarted: string;
+      inProgress: string;
+      completed: string;
+    };
+    save: string;
+    cancel: string;
+    noFloors: string;
+    noFloorsForProject: string;
+    cesCet: {
+      title: string;
+      ces: string;
+      cet: string;
+    };
+  };
   reports: {
     title: string;
     addReport: string;
@@ -116,6 +144,7 @@ export type Translations = {
   navigation: {
     dashboard: string;
     projects: string;
+    floors: string;
     reports: string;
     problems: string;
     settings: string;
@@ -167,6 +196,34 @@ export const translations: Record<Language, Translations> = {
         bureau: 'Bureau',
         commercial: 'Commercial',
         other: 'Autre',
+      },
+    },
+    floors: {
+      title: 'Étages',
+      addFloor: 'Ajouter un étage',
+      editFloor: 'Modifier l\'étage',
+      viewFloor: 'Voir l\'étage',
+      deleteFloor: 'Supprimer l\'étage',
+      shareFloor: 'Partager l\'étage',
+      floorName: 'Nom de l\'étage',
+      floorNumber: 'Numéro d\'étage',
+      rebarInspectionDate: 'Date de vérification du ferraillage',
+      concretePouringDate: 'Date de coulage du béton',
+      notes: 'Notes',
+      status: 'Statut',
+      statuses: {
+        notStarted: 'Non commencé',
+        inProgress: 'En cours',
+        completed: 'Terminé',
+      },
+      save: 'Enregistrer',
+      cancel: 'Annuler',
+      noFloors: 'Aucun étage',
+      noFloorsForProject: 'Aucun étage pour ce projet',
+      cesCet: {
+        title: 'Suivi CES/CET',
+        ces: 'CES',
+        cet: 'CET',
       },
     },
     reports: {
@@ -245,6 +302,7 @@ export const translations: Record<Language, Translations> = {
     navigation: {
       dashboard: 'Tableau de bord',
       projects: 'Projets',
+      floors: 'Étages',
       reports: 'Rapports',
       problems: 'Problèmes',
       settings: 'Paramètres',
@@ -294,6 +352,34 @@ export const translations: Record<Language, Translations> = {
         bureau: 'Office',
         commercial: 'Commercial',
         other: 'Other',
+      },
+    },
+    floors: {
+      title: 'Floors',
+      addFloor: 'Add Floor',
+      editFloor: 'Edit Floor',
+      viewFloor: 'View Floor',
+      deleteFloor: 'Delete Floor',
+      shareFloor: 'Share Floor',
+      floorName: 'Floor Name',
+      floorNumber: 'Floor Number',
+      rebarInspectionDate: 'Rebar Inspection Date',
+      concretePouringDate: 'Concrete Pouring Date',
+      notes: 'Notes',
+      status: 'Status',
+      statuses: {
+        notStarted: 'Not Started',
+        inProgress: 'In Progress',
+        completed: 'Completed',
+      },
+      save: 'Save',
+      cancel: 'Cancel',
+      noFloors: 'No floors',
+      noFloorsForProject: 'No floors for this project',
+      cesCet: {
+        title: 'CES/CET Tracking',
+        ces: 'CES',
+        cet: 'CET',
       },
     },
     reports: {
@@ -372,6 +458,7 @@ export const translations: Record<Language, Translations> = {
     navigation: {
       dashboard: 'Dashboard',
       projects: 'Projects',
+      floors: 'Floors',
       reports: 'Reports',
       problems: 'Problems',
       settings: 'Settings',

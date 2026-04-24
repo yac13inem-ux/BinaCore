@@ -5,12 +5,25 @@ export interface Project {
   password: string; // In production, this should be hashed
   buildingType: 'immeuble' | 'villa' | 'bureau' | 'commercial' | 'other';
   numberOfFloors: number;
-  rebarInspectionDate: string | null;
-  concretePouringDate: string | null;
   createdAt: string;
   updatedAt: string;
   ces?: CES | null;
   cet?: CET | null;
+}
+
+export interface Floor {
+  id: string;
+  projectId: string;
+  floorNumber: number;
+  floorName: string;
+  rebarInspectionDate: string | null;
+  concretePouringDate: string | null;
+  ces?: CES | null;
+  cet?: CET | null;
+  notes?: string;
+  status: 'notStarted' | 'inProgress' | 'completed';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CES {
@@ -48,6 +61,7 @@ export interface Problem {
 
 // Storage keys
 const PROJECTS_KEY = 'binacore_projects';
+const FLOORS_KEY = 'binacore_floors';
 const REPORTS_KEY = 'binacore_reports';
 const PROBLEMS_KEY = 'binacore_problems';
 
@@ -98,13 +112,72 @@ export function saveProject(project: Project): void {
 export function deleteProject(id: string): void {
   const projects = getProjects().filter(p => p.id !== id);
   setToStorage(PROJECTS_KEY, projects);
-  
-  // Also delete associated reports and problems
+
+  // Also delete associated floors, reports and problems
+  const floors = getFloors().filter(f => f.projectId !== id);
+  setToStorage(FLOORS_KEY, floors);
+
   const reports = getReports().filter(r => r.projectId !== id);
   setToStorage(REPORTS_KEY, reports);
-  
+
   const problems = getProblems().filter(p => p.projectId !== id);
   setToStorage(PROBLEMS_KEY, problems);
+}
+
+// Floors
+export function getFloors(): Floor[] {
+  return getFromStorage<Floor[]>(FLOORS_KEY, []);
+}
+
+export function getFloorsByProject(projectId: string): Floor[] {
+  return getFloors().filter(f => f.projectId === projectId);
+}
+
+export function getFloorById(id: string): Floor | undefined {
+  const floors = getFloors();
+  return floors.find(f => f.id === id);
+}
+
+export function saveFloor(floor: Floor): void {
+  const floors = getFloors();
+  const existingIndex = floors.findIndex(f => f.id === floor.id);
+
+  if (existingIndex >= 0) {
+    floors[existingIndex] = { ...floor, updatedAt: new Date().toISOString() };
+  } else {
+    floors.push(floor);
+  }
+
+  setToStorage(FLOORS_KEY, floors);
+}
+
+export function deleteFloor(id: string): void {
+  const floors = getFloors().filter(f => f.id !== id);
+  setToStorage(FLOORS_KEY, floors);
+}
+
+export function createFloor(data: Omit<Floor, 'id' | 'createdAt' | 'updatedAt'>): Floor {
+  const floor: Floor = {
+    ...data,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  saveFloor(floor);
+  return floor;
+}
+
+export function updateFloor(id: string, data: Partial<Floor>): Floor | null {
+  const floors = getFloors();
+  const floor = floors.find(f => f.id === id);
+
+  if (floor) {
+    const updated = { ...floor, ...data, updatedAt: new Date().toISOString() };
+    saveFloor(updated);
+    return updated;
+  }
+
+  return null;
 }
 
 export function createProject(data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Project {
