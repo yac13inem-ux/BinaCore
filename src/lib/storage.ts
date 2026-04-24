@@ -25,8 +25,6 @@ export interface Floor {
   blockId: string;
   floorNumber: number;
   floorName: string;
-  rebarInspectionDate: string | null;
-  concretePouringDate: string | null;
   ces?: CES | null;
   cet?: CET | null;
   notes?: string;

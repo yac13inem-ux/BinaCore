@@ -204,8 +204,6 @@ export default function BinaCoreApp() {
     blockId: string;
     floorNumber: string;
     floorName: string;
-    rebarInspectionDate: string;
-    concretePouringDate: string;
     ces: CES;
     cet: CET;
     status: 'notStarted' | 'inProgress' | 'completed';
@@ -215,8 +213,6 @@ export default function BinaCoreApp() {
     blockId: '',
     floorNumber: '',
     floorName: '',
-    rebarInspectionDate: '',
-    concretePouringDate: '',
     ces: { inspected: false, date: '', notes: '' } as CES,
     cet: { inspected: false, date: '', notes: '' } as CET,
     status: 'notStarted',
@@ -370,8 +366,6 @@ export default function BinaCoreApp() {
       blockId: blockId,
       floorNumber: '',
       floorName: '',
-      rebarInspectionDate: '',
-      concretePouringDate: '',
       ces: { inspected: false, date: '', notes: '' },
       cet: { inspected: false, date: '', notes: '' },
       status: 'notStarted',
@@ -388,8 +382,6 @@ export default function BinaCoreApp() {
       blockId: floor.blockId,
       floorNumber: floor.floorNumber.toString(),
       floorName: floor.floorName,
-      rebarInspectionDate: floor.rebarInspectionDate || '',
-      concretePouringDate: floor.concretePouringDate || '',
       ces: floor.ces || { inspected: false, date: '', notes: '' },
       cet: floor.cet || { inspected: false, date: '', notes: '' },
       status: floor.status,
@@ -546,8 +538,6 @@ export default function BinaCoreApp() {
       blockId: floorForm.blockId,
       floorNumber: parseInt(floorForm.floorNumber),
       floorName: floorForm.floorName,
-      rebarInspectionDate: floorForm.rebarInspectionDate || null,
-      concretePouringDate: floorForm.concretePouringDate || null,
       ces: floorForm.ces.inspected ? {
         inspected: true,
         date: floorForm.ces.date || null,
@@ -583,8 +573,6 @@ export default function BinaCoreApp() {
       blockId: '',
       floorNumber: '',
       floorName: '',
-      rebarInspectionDate: '',
-      concretePouringDate: '',
       ces: { inspected: false, date: '', notes: '' },
       cet: { inspected: false, date: '', notes: '' },
       status: 'notStarted',
@@ -928,11 +916,6 @@ export default function BinaCoreApp() {
                                                 {t.floors.statuses[floor.status]}
                                               </Badge>
                                             </span>
-                                            {floor.rebarInspectionDate && (
-                                              <span>
-                                                {t.floors.rebarInspectionDate}: {formatDate(floor.rebarInspectionDate, language)}
-                                              </span>
-                                            )}
                                           </div>
                                         </div>
                                         <DropdownMenu>
@@ -1689,31 +1672,6 @@ export default function BinaCoreApp() {
                     id="floorName"
                     value={floorForm.floorName}
                     onChange={(e) => setFloorForm({ ...floorForm, floorName: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Dates Section */}
-            <div className="border-b pb-4">
-              <h3 className="font-semibold text-lg mb-4">{language === 'fr' ? 'Dates' : 'Dates'}</h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="floorRebarDate">{t.floors.rebarInspectionDate}</Label>
-                  <Input
-                    id="floorRebarDate"
-                    type="date"
-                    value={floorForm.rebarInspectionDate}
-                    onChange={(e) => setFloorForm({ ...floorForm, rebarInspectionDate: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="floorConcreteDate">{t.floors.concretePouringDate}</Label>
-                  <Input
-                    id="floorConcreteDate"
-                    type="date"
-                    value={floorForm.concretePouringDate}
-                    onChange={(e) => setFloorForm({ ...floorForm, concretePouringDate: e.target.value })}
                   />
                 </div>
               </div>

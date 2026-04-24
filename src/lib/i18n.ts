@@ -49,8 +49,6 @@ export type Translations = {
     floorName: string;
     floorNumber: string;
     grosOeuvre: string;
-    rebarInspectionDate: string;
-    concretePouringDate: string;
     notes: string;
     status: string;
     statuses: {
@@ -207,8 +205,6 @@ export const translations: Record<Language, Translations> = {
       floorName: 'Nom de l\'étage',
       floorNumber: 'Numéro d\'étage',
       grosOeuvre: 'Gros Œuvre',
-      rebarInspectionDate: 'Date de vérification du ferraillage',
-      concretePouringDate: 'Date de coulage du béton',
       notes: 'Notes',
       status: 'Statut',
       statuses: {
@@ -363,8 +359,6 @@ export const translations: Record<Language, Translations> = {
       floorName: 'Floor Name',
       floorNumber: 'Floor Number',
       grosOeuvre: 'Gros Œuvre',
-      rebarInspectionDate: 'Rebar Inspection Date',
-      concretePouringDate: 'Concrete Pouring Date',
       notes: 'Notes',
       status: 'Status',
       statuses: {
