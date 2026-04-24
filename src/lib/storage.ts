@@ -5,6 +5,8 @@ export interface Project {
   password: string; // In production, this should be hashed
   buildingType: 'immeuble' | 'villa' | 'bureau' | 'commercial' | 'other';
   numberOfFloors: number;
+  rebarInspectionDate: string | null;
+  concretePouringDate: string | null;
   createdAt: string;
   updatedAt: string;
   ces?: CES | null;

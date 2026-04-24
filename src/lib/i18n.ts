@@ -96,7 +96,7 @@ export type Translations = {
     viewProblem: string;
     deleteProblem: string;
     shareProblem: string;
-    title: string;
+    problemTitle: string;
     description: string;
     date: string;
     linkedProject: string;
@@ -254,7 +254,7 @@ export const translations: Record<Language, Translations> = {
       viewProblem: 'Voir le problème',
       deleteProblem: 'Supprimer le problème',
       shareProblem: 'Partager le problème',
-      title: 'Titre',
+      problemTitle: 'Titre',
       description: 'Description',
       date: 'Date',
       linkedProject: 'Projet lié',
@@ -410,7 +410,7 @@ export const translations: Record<Language, Translations> = {
       viewProblem: 'View Problem',
       deleteProblem: 'Delete Problem',
       shareProblem: 'Share Problem',
-      title: 'Title',
+      problemTitle: 'Title',
       description: 'Description',
       date: 'Date',
       linkedProject: 'Linked Project',

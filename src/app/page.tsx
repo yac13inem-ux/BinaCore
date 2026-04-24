@@ -134,10 +134,19 @@ export default function BinaCoreApp() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   // Project form
-  const [projectForm, setProjectForm] = useState({
+  const [projectForm, setProjectForm] = useState<{
+    name: string;
+    password: string;
+    buildingType: 'immeuble' | 'villa' | 'bureau' | 'commercial' | 'other';
+    numberOfFloors: string;
+    rebarInspectionDate: string;
+    concretePouringDate: string;
+    ces: CES;
+    cet: CET;
+  }>({
     name: '',
     password: '',
-    buildingType: 'immeuble' as const,
+    buildingType: 'immeuble',
     numberOfFloors: '',
     rebarInspectionDate: '',
     concretePouringDate: '',
@@ -146,20 +155,31 @@ export default function BinaCoreApp() {
   });
 
   // Report form
-  const [reportForm, setReportForm] = useState({
+  const [reportForm, setReportForm] = useState<{
+    projectId: string;
+    type: 'pvVisite' | 'pvConstat' | 'rapport';
+    date: string;
+    description: string;
+  }>({
     projectId: '',
-    type: 'pvVisite' as const,
+    type: 'pvVisite',
     date: '',
     description: '',
   });
 
   // Problem form
-  const [problemForm, setProblemForm] = useState({
+  const [problemForm, setProblemForm] = useState<{
+    projectId: string;
+    title: string;
+    description: string;
+    date: string;
+    status: 'open' | 'inProgress' | 'resolved';
+  }>({
     projectId: '',
     title: '',
     description: '',
     date: '',
-    status: 'open' as const,
+    status: 'open',
   });
 
   // Floor form
@@ -172,6 +192,7 @@ export default function BinaCoreApp() {
     ces: { inspected: false, date: '', notes: '' } as CES,
     cet: { inspected: false, date: '', notes: '' } as CET,
     status: 'notStarted' as const,
+    notes: '',
   });
 
   const loadData = () => {
@@ -201,6 +222,8 @@ export default function BinaCoreApp() {
       password: projectForm.password,
       buildingType: projectForm.buildingType,
       numberOfFloors: parseInt(projectForm.numberOfFloors),
+      rebarInspectionDate: projectForm.rebarInspectionDate || null,
+      concretePouringDate: projectForm.concretePouringDate || null,
       ces: projectForm.ces.inspected ? {
         inspected: true,
         date: projectForm.ces.date || null,
@@ -235,6 +258,8 @@ export default function BinaCoreApp() {
       password: '',
       buildingType: 'immeuble',
       numberOfFloors: '',
+      rebarInspectionDate: '',
+      concretePouringDate: '',
       ces: { inspected: false, date: '', notes: '' },
       cet: { inspected: false, date: '', notes: '' },
     });
@@ -431,6 +456,7 @@ export default function BinaCoreApp() {
       ces: { inspected: false, date: '', notes: '' },
       cet: { inspected: false, date: '', notes: '' },
       status: 'notStarted',
+      notes: '',
     });
   };
 
@@ -582,6 +608,8 @@ export default function BinaCoreApp() {
                                 password: project.password,
                                 buildingType: project.buildingType,
                                 numberOfFloors: project.numberOfFloors.toString(),
+                                rebarInspectionDate: project.rebarInspectionDate || '',
+                                concretePouringDate: project.concretePouringDate || '',
                                 ces: project.ces || { inspected: false, date: '', notes: '' },
                                 cet: project.cet || { inspected: false, date: '', notes: '' },
                               }); setProjectDialogOpen(true); }}>
