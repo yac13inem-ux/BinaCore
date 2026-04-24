@@ -824,46 +824,59 @@ export default function BinaCoreApp() {
                 </Button>
               </Card>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {projects.slice(0, 6).map((project) => {
-                  const progress = getProjectProgress(project);
-                  return (
-                    <Card key={project.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg">{project.name}</CardTitle>
-                          <Badge variant={progress === 100 ? 'default' : 'secondary'}>
-                            {progress}%
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <Progress value={progress} className="h-2" />
-                          <div className="flex items-center justify-between text-sm text-muted-foreground">
-                            <span>{t.dashboard.lastUpdate}</span>
-                            <span className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {formatDate(project.updatedAt, language)}
-                            </span>
+              <>
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {projects.slice(0, 6).map((project) => {
+                    const progress = getProjectProgress(project);
+                    return (
+                      <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <CardTitle className="text-lg">{project.name}</CardTitle>
+                            <Badge variant={progress === 100 ? 'default' : 'secondary'}>
+                              {progress}%
+                            </Badge>
                           </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() => handleViewProject(project)}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              {t.dashboard.viewProject}
-                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <Progress value={progress} className="h-2" />
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <span>{t.dashboard.lastUpdate}</span>
+                              <span className="flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {formatDate(project.updatedAt, language)}
+                              </span>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => handleViewProject(project)}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                {t.dashboard.viewProject}
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+                {projects.length > 6 && (
+                  <div className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setActiveTab('projects')}
+                      className="w-full sm:w-auto"
+                    >
+                      {language === 'fr' ? 'Voir tous les projets' : 'View all projects'} ({projects.length})
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
 
@@ -885,10 +898,9 @@ export default function BinaCoreApp() {
                     <p className="text-lg text-muted-foreground">{t.projects.noProjectsFound}</p>
                   </Card>
                 ) : (
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {projects.map((project) => {
                       const progress = getProjectProgress(project);
-                      const projectBlocks = getBlocksByProject(project.id);
                       return (
                         <Card key={project.id} className="hover:shadow-lg transition-shadow">
                           <CardHeader>
@@ -930,13 +942,16 @@ export default function BinaCoreApp() {
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
+                              <Badge variant={progress === 100 ? 'default' : 'secondary'}>
+                                {progress}%
+                              </Badge>
                             </div>
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
                                 <p className="text-muted-foreground">{language === 'fr' ? 'Blocs' : 'Blocks'}</p>
-                                <p className="font-medium">{projectBlocks.length}</p>
+                                <p className="font-medium">{getBlocksByProject(project.id).length}</p>
                               </div>
                               <div>
                                 <p className="text-muted-foreground">{t.dashboard.progress}</p>
