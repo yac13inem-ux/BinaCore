@@ -66,8 +66,16 @@ export type Translations = {
       cet: string;
       logementType: string;
       logementTypes: {
+        studio: string;
+        f1: string;
+        f2: string;
         f3: string;
         f4: string;
+        f5: string;
+        t1: string;
+        t2: string;
+        t3: string;
+        t4: string;
       };
     };
     times: {
@@ -166,8 +174,16 @@ export type Translations = {
     tracking: string;
     logementType: string;
     logementTypes: {
+      studio: string;
+      f1: string;
+      f2: string;
       f3: string;
       f4: string;
+      f5: string;
+      t1: string;
+      t2: string;
+      t3: string;
+      t4: string;
     };
   };
 };
@@ -239,8 +255,16 @@ export const translations: Record<Language, Translations> = {
         cet: 'CET',
         logementType: 'Type de logement',
         logementTypes: {
+          studio: 'Studio',
+          f1: 'F1',
+          f2: 'F2',
           f3: 'F3',
           f4: 'F4',
+          f5: 'F5',
+          t1: 'T1',
+          t2: 'T2',
+          t3: 'T3',
+          t4: 'T4',
         },
       },
       times: {
@@ -339,12 +363,19 @@ export const translations: Record<Language, Translations> = {
       tracking: 'Suivi',
       logementType: 'Type de logement',
       logementTypes: {
+        studio: 'Studio',
+        f1: 'F1',
+        f2: 'F2',
         f3: 'F3',
         f4: 'F4',
+        f5: 'F5',
+        t1: 'T1',
+        t2: 'T2',
+        t3: 'T3',
+        t4: 'T4',
       },
   },
-  },
-  en: {
+    en: {
     dashboard: {
       title: 'Dashboard',
       latestProgress: 'Latest Progress',
@@ -410,8 +441,16 @@ export const translations: Record<Language, Translations> = {
         cet: 'CET',
         logementType: 'Housing Type',
         logementTypes: {
+          studio: 'Studio',
+          f1: 'F1',
+          f2: 'F2',
           f3: 'F3',
           f4: 'F4',
+          f5: 'F5',
+          t1: 'T1',
+          t2: 'T2',
+          t3: 'T3',
+          t4: 'T4',
         },
       },
       times: {
@@ -510,9 +549,17 @@ export const translations: Record<Language, Translations> = {
       tracking: 'Tracking',
       logementType: 'Housing Type',
       logementTypes: {
+        studio: 'Studio',
+        f1: 'F1',
+        f2: 'F2',
         f3: 'F3',
         f4: 'F4',
+        f5: 'F5',
+        t1: 'T1',
+        t2: 'T2',
+        t3: 'T3',
+        t4: 'T4',
+        t4: 'T4',
       },
-  },
-  },
-};
+    },
+  };

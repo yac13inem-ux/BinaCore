@@ -959,12 +959,12 @@ export default function BinaCoreApp() {
                                             )}
                                             {floor.ces?.logementType && (
                                               <span>
-                                                CES: {language === 'fr' ? 'Type' : 'Type'} {floor.ces.logementType === 'f3' ? t.floors.cesCet.logementTypes.f3 : t.floors.cesCet.logementTypes.f4}
+                                                CES: {language === 'fr' ? 'Type' : 'Type'} {t.floors.cesCet.logementTypes[floor.ces.logementType as keyof typeof t.floors.cesCet.logementTypes] || floor.ces.logementType}
                                               </span>
                                             )}
                                             {floor.cet?.logementType && (
                                               <span>
-                                                CET: {language === 'fr' ? 'Type' : 'Type'} {floor.cet.logementType === 'f3' ? t.floors.cesCet.logementTypes.f3 : t.floors.cesCet.logementTypes.f4}
+                                                CET: {language === 'fr' ? 'Type' : 'Type'} {t.floors.cesCet.logementTypes[floor.cet.logementType as keyof typeof t.floors.cesCet.logementTypes] || floor.cet.logementType}
                                               </span>
                                             )}
                                           </div>
@@ -1833,8 +1833,16 @@ export default function BinaCoreApp() {
                               <SelectValue placeholder={language === 'fr' ? 'Sélectionner le type' : 'Select type'} />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="studio">{t.floors.cesCet.logementTypes.studio}</SelectItem>
+                              <SelectItem value="f1">{t.floors.cesCet.logementTypes.f1}</SelectItem>
+                              <SelectItem value="f2">{t.floors.cesCet.logementTypes.f2}</SelectItem>
                               <SelectItem value="f3">{t.floors.cesCet.logementTypes.f3}</SelectItem>
                               <SelectItem value="f4">{t.floors.cesCet.logementTypes.f4}</SelectItem>
+                              <SelectItem value="f5">{t.floors.cesCet.logementTypes.f5}</SelectItem>
+                              <SelectItem value="t1">{t.floors.cesCet.logementTypes.t1}</SelectItem>
+                              <SelectItem value="t2">{t.floors.cesCet.logementTypes.t2}</SelectItem>
+                              <SelectItem value="t3">{t.floors.cesCet.logementTypes.t3}</SelectItem>
+                              <SelectItem value="t4">{t.floors.cesCet.logementTypes.t4}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1877,8 +1885,16 @@ export default function BinaCoreApp() {
                               <SelectValue placeholder={language === 'fr' ? 'Sélectionner le type' : 'Select type'} />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="studio">{t.floors.cesCet.logementTypes.studio}</SelectItem>
+                              <SelectItem value="f1">{t.floors.cesCet.logementTypes.f1}</SelectItem>
+                              <SelectItem value="f2">{t.floors.cesCet.logementTypes.f2}</SelectItem>
                               <SelectItem value="f3">{t.floors.cesCet.logementTypes.f3}</SelectItem>
                               <SelectItem value="f4">{t.floors.cesCet.logementTypes.f4}</SelectItem>
+                              <SelectItem value="f5">{t.floors.cesCet.logementTypes.f5}</SelectItem>
+                              <SelectItem value="t1">{t.floors.cesCet.logementTypes.t1}</SelectItem>
+                              <SelectItem value="t2">{t.floors.cesCet.logementTypes.t2}</SelectItem>
+                              <SelectItem value="t3">{t.floors.cesCet.logementTypes.t3}</SelectItem>
+                              <SelectItem value="t4">{t.floors.cesCet.logementTypes.t4}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
