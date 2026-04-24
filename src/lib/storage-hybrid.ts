@@ -295,7 +295,109 @@ export async function getBlockNameAsync(blockId: string): Promise<string> {
   return localStorage.getBlockName(blockId);
 }
 
-// Re-export utility functions
-export { formatDate, shareToWhatsApp, shareToSystem } from './storage';
-export type { BinaCoreData } from './storage';
-export { exportData, importData, downloadDataAsJson, readJsonFile } from './storage';
+export interface BinaCoreData {
+  projects: Project[];
+  blocks: Block[];
+  floors: Floor[];
+  reports: Report[];
+  problems: Problem[];
+}
+
+export function formatDate(dateString: string, language: string): string {
+  try {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    };
+    return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : language === 'fr' ? 'fr-FR' : 'en-US', options);
+  } catch {
+    return dateString;
+  }
+}
+
+export function shareToWhatsApp(text: string): void {
+  if (typeof window !== 'undefined' && window.navigator) {
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  }
+}
+
+export function shareToSystem(text: string): void {
+  if (typeof window !== 'undefined' && navigator.share) {
+    navigator.share({
+      text,
+    }).catch(() => {
+      // Fallback silently
+    });
+  }
+}
+
+export async function exportData(): Promise<BinaCoreData> {
+  const [projects, blocks, floors, reports, problems] = await Promise.all([
+    getProjects(),
+    getBlocks(),
+    getFloors(),
+    getReports(),
+    getProblems(),
+  ]);
+
+  return {
+    projects,
+    blocks,
+    floors,
+    reports,
+    problems,
+  };
+}
+
+export async function importData(data: BinaCoreData): Promise<void> {
+  if (shouldUseAPI()) {
+    for (const project of data.projects) {
+      await apiStorage.createProject({
+        name: project.name,
+        description: project.description,
+        password: project.password,
+        buildingType: project.buildingType,
+        numberOfFloors: project.numberOfFloors,
+      });
+    }
+    // Note: Blocks, floors, reports, and problems are not imported in API mode
+    // as they require the new project IDs from the API
+  }
+  // localStorage mode import is not supported
+}
+
+export async function downloadDataAsJson(): Promise<void> {
+  const data = await exportData();
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `binacore-export-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export async function readJsonFile(file: File): Promise<BinaCoreData> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = e.target?.result as string;
+        const data = JSON.parse(json) as BinaCoreData;
+        resolve(data);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsText(file);
+  });
+}
+
+export type { Project, Block, Floor, Report, Problem, Logement, CES, CET } from './storage';
