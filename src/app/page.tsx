@@ -25,6 +25,8 @@ import {
   Moon,
   Sun,
   Globe,
+  Download,
+  Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +40,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -107,6 +110,9 @@ import {
   CET,
   Logement,
   getBlockName,
+  downloadDataAsJson,
+  readJsonFile,
+  importData,
 } from '@/lib/storage';
 
 type TabValue = 'dashboard' | 'projects' | 'reports' | 'problems' | 'settings';
@@ -153,6 +159,9 @@ export default function BinaCoreApp() {
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // Data export/import
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Project form
   const [projectForm, setProjectForm] = useState<{
@@ -765,6 +774,58 @@ export default function BinaCoreApp() {
   const getProjectName = (projectId: string) => {
     const project = projects.find(p => p.id === projectId);
     return project?.name || (language === 'fr' ? 'Projet inconnu' : 'Unknown project');
+  };
+
+  // Export data handler
+  const handleExportData = () => {
+    try {
+      downloadDataAsJson();
+      toast({
+        title: t.common.success,
+        description: t.settings.exportSuccess,
+      });
+    } catch (error) {
+      toast({
+        title: t.common.error,
+        description: error instanceof Error ? error.message : t.common.error,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Import data handler
+  const handleImportData = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const data = await readJsonFile(file);
+      const result = importData(data);
+
+      if (result.success) {
+        loadData();
+        setImportDialogOpen(false);
+        toast({
+          title: t.common.success,
+          description: t.settings.importSuccess + ` (${result.imported} ${language === 'fr' ? 'projets importés' : 'projects imported'})`,
+        });
+      } else {
+        toast({
+          title: t.common.error,
+          description: result.message || t.settings.importError,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: t.common.error,
+        description: error instanceof Error ? error.message : t.settings.invalidFile,
+        variant: 'destructive',
+      });
+    }
+
+    // Reset file input
+    event.target.value = '';
   };
 
   const filteredProblems = problems.filter(p => {
@@ -1388,7 +1449,7 @@ export default function BinaCoreApp() {
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             <h2 className="text-3xl font-bold">{t.settings.title}</h2>
-            
+
             <div className="grid gap-6 md:grid-cols-2">
               <Card>
                 <CardHeader>
@@ -1445,6 +1506,84 @@ export default function BinaCoreApp() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold">{t.settings.dataManagement}</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Download className="h-5 w-5" />
+                      {t.settings.exportData}
+                    </CardTitle>
+                    <CardDescription>
+                      {t.settings.exportDataDescription}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      onClick={handleExportData}
+                      className="w-full"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      {t.settings.exportData}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Upload className="h-5 w-5" />
+                      {t.settings.importData}
+                    </CardTitle>
+                    <CardDescription>
+                      {t.settings.importDataDescription}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button
+                          className="w-full"
+                          variant="outline"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          {t.settings.importData}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>{t.settings.importData}</DialogTitle>
+                          <DialogDescription>
+                            {t.settings.importDataDescription}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div>
+                            <Label htmlFor="import-file">{t.settings.selectFile}</Label>
+                            <Input
+                              id="import-file"
+                              type="file"
+                              accept=".json"
+                              onChange={handleImportData}
+                            />
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {language === 'fr' ? 'Note: Les données existantes avec le même ID seront mises à jour.' : 'Note: Existing data with the same ID will be updated.'}
+                          </p>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setImportDialogOpen(false)}>
+                            {t.common.cancel}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
 
             <Card>

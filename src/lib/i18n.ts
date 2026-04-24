@@ -143,6 +143,16 @@ export type Translations = {
     theme: string;
     dark: string;
     light: string;
+    dataManagement: string;
+    exportData: string;
+    exportDataDescription: string;
+    importData: string;
+    importDataDescription: string;
+    exportSuccess: string;
+    importSuccess: string;
+    importError: string;
+    invalidFile: string;
+    selectFile: string;
   };
   common: {
     view: string;
@@ -350,6 +360,16 @@ export const translations: Record<Language, Translations> = {
       theme: 'Thème',
       dark: 'Sombre',
       light: 'Clair',
+      dataManagement: 'Gestion des données',
+      exportData: 'Exporter les données',
+      exportDataDescription: 'Téléchargez toutes vos données dans un fichier JSON pour les transférer sur un autre appareil.',
+      importData: 'Importer les données',
+      importDataDescription: 'Importez vos données depuis un fichier JSON précédemment exporté.',
+      exportSuccess: 'Données exportées avec succès',
+      importSuccess: 'Données importées avec succès',
+      importError: 'Erreur lors de l\'import',
+      invalidFile: 'Fichier invalide. Veuillez sélectionner un fichier JSON valide.',
+      selectFile: 'Sélectionner un fichier',
     },
     common: {
       view: 'Voir',
@@ -555,6 +575,16 @@ export const translations: Record<Language, Translations> = {
       theme: 'Theme',
       dark: 'Dark',
       light: 'Light',
+      dataManagement: 'Data Management',
+      exportData: 'Export Data',
+      exportDataDescription: 'Download all your data as a JSON file to transfer to another device.',
+      importData: 'Import Data',
+      importDataDescription: 'Import your data from a previously exported JSON file.',
+      exportSuccess: 'Data exported successfully',
+      importSuccess: 'Data imported successfully',
+      importError: 'Import error',
+      invalidFile: 'Invalid file. Please select a valid JSON file.',
+      selectFile: 'Select File',
     },
     common: {
       view: 'View',

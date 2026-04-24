@@ -474,3 +474,157 @@ export async function shareToSystem(text: string, title: string = 'Share'): Prom
     await navigator.clipboard.writeText(text);
   }
 }
+
+// Data export/import for cross-device sync
+export interface BinaCoreData {
+  version: string;
+  exportDate: string;
+  projects: Project[];
+  blocks: Block[];
+  floors: Floor[];
+  reports: Report[];
+  problems: Problem[];
+}
+
+export function exportData(): BinaCoreData {
+  return {
+    version: '1.0',
+    exportDate: new Date().toISOString(),
+    projects: getProjects(),
+    blocks: getBlocks(),
+    floors: getFloors(),
+    reports: getReports(),
+    problems: getProblems(),
+  };
+}
+
+export function importData(data: BinaCoreData): { success: boolean; message: string; imported: number } {
+  try {
+    // Validate data structure
+    if (!data.projects || !data.blocks || !data.floors || !data.reports || !data.problems) {
+      return {
+        success: false,
+        message: 'Invalid data format',
+        imported: 0,
+      };
+    }
+
+    // Import all data
+    let importedCount = 0;
+
+    // Import projects
+    data.projects.forEach(project => {
+      const existingIndex = getProjects().findIndex(p => p.id === project.id);
+      if (existingIndex === -1) {
+        // New project, add it
+        const projects = getProjects();
+        projects.push(project);
+        setToStorage(PROJECTS_KEY, projects);
+        importedCount++;
+      } else {
+        // Update existing project
+        const projects = getProjects();
+        projects[existingIndex] = project;
+        setToStorage(PROJECTS_KEY, projects);
+        importedCount++;
+      }
+    });
+
+    // Import blocks
+    data.blocks.forEach(block => {
+      const blocks = getBlocks();
+      const existingIndex = blocks.findIndex(b => b.id === block.id);
+      if (existingIndex === -1) {
+        blocks.push(block);
+      } else {
+        blocks[existingIndex] = block;
+      }
+      setToStorage(BLOCKS_KEY, blocks);
+    });
+
+    // Import floors
+    data.floors.forEach(floor => {
+      const floors = getFloors();
+      const existingIndex = floors.findIndex(f => f.id === floor.id);
+      if (existingIndex === -1) {
+        floors.push(floor);
+      } else {
+        floors[existingIndex] = floor;
+      }
+      setToStorage(FLOORS_KEY, floors);
+    });
+
+    // Import reports
+    data.reports.forEach(report => {
+      const reports = getReports();
+      const existingIndex = reports.findIndex(r => r.id === report.id);
+      if (existingIndex === -1) {
+        reports.push(report);
+      } else {
+        reports[existingIndex] = report;
+      }
+      setToStorage(REPORTS_KEY, reports);
+    });
+
+    // Import problems
+    data.problems.forEach(problem => {
+      const problems = getProblems();
+      const existingIndex = problems.findIndex(p => p.id === problem.id);
+      if (existingIndex === -1) {
+        problems.push(problem);
+      } else {
+        problems[existingIndex] = problem;
+      }
+      setToStorage(PROBLEMS_KEY, problems);
+    });
+
+    return {
+      success: true,
+      message: 'Data imported successfully',
+      imported: importedCount,
+    };
+  } catch (error) {
+    console.error('Error importing data:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      imported: 0,
+    };
+  }
+}
+
+export function downloadDataAsJson(): void {
+  const data = exportData();
+  const jsonString = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `binacore-backup-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function readJsonFile(file: File): Promise<BinaCoreData> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string);
+        resolve(data);
+      } catch (error) {
+        reject(new Error('Invalid JSON file'));
+      }
+    };
+
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'));
+    };
+
+    reader.readAsText(file);
+  });
+}
