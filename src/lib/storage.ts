@@ -2,15 +2,12 @@
 export interface Project {
   id: string;
   name: string;
+  description?: string;
   password: string; // In production, this should be hashed
   buildingType: 'immeuble' | 'villa' | 'bureau' | 'commercial' | 'other';
   numberOfFloors: number;
-  rebarInspectionDate: string | null;
-  concretePouringDate: string | null;
   createdAt: string;
   updatedAt: string;
-  ces?: CES | null;
-  cet?: CET | null;
 }
 
 export interface Block {
@@ -407,30 +404,30 @@ export function updateProblem(id: string, data: Partial<Problem>): Problem | nul
 
 // Utility functions
 export function getProjectProgress(project: Project): number {
+  const blocks = getBlocksByProject(project.id);
   const reports = getReportsByProject(project.id);
   const problems = getProblemsByProject(project.id);
-  
+
   let completedTasks = 0;
   let totalTasks = 0;
-  
-  // Check CES/CET
-  totalTasks += 2;
-  if (project.ces?.inspected) completedTasks++;
-  if (project.cet?.inspected) completedTasks++;
-  
-  // Check key dates
-  totalTasks += 2;
-  if (project.rebarInspectionDate) completedTasks++;
-  if (project.concretePouringDate) completedTasks++;
-  
+
+  // Check if blocks exist
+  totalTasks += 1;
+  if (blocks.length > 0) completedTasks++;
+
+  // Check floor completion
+  const allFloors = blocks.flatMap(b => getFloorsByBlock(b.id));
+  totalTasks += allFloors.length;
+  completedTasks += allFloors.filter(f => f.status === 'completed').length;
+
   // Check problems resolution
   totalTasks += problems.length;
   completedTasks += problems.filter(p => p.status === 'resolved').length;
-  
+
   // Check reports
   totalTasks += reports.length * 3; // Each report type is tracked
   completedTasks += reports.length;
-  
+
   return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 }
 

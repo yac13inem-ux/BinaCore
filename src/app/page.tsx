@@ -151,22 +151,16 @@ export default function BinaCoreApp() {
   // Project form
   const [projectForm, setProjectForm] = useState<{
     name: string;
+    description: string;
     password: string;
     buildingType: 'immeuble' | 'villa' | 'bureau' | 'commercial' | 'other';
     numberOfFloors: string;
-    rebarInspectionDate: string;
-    concretePouringDate: string;
-    ces: CES;
-    cet: CET;
   }>({
     name: '',
+    description: '',
     password: '',
     buildingType: 'immeuble',
     numberOfFloors: '',
-    rebarInspectionDate: '',
-    concretePouringDate: '',
-    ces: { inspected: false, date: '', notes: '' } as CES,
-    cet: { inspected: false, date: '', notes: '' } as CET,
   });
 
   // Block form
@@ -258,21 +252,10 @@ export default function BinaCoreApp() {
 
     const projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'> = {
       name: projectForm.name,
+      description: projectForm.description,
       password: projectForm.password,
       buildingType: projectForm.buildingType,
       numberOfFloors: parseInt(projectForm.numberOfFloors),
-      rebarInspectionDate: projectForm.rebarInspectionDate || null,
-      concretePouringDate: projectForm.concretePouringDate || null,
-      ces: projectForm.ces.inspected ? {
-        inspected: true,
-        date: projectForm.ces.date || null,
-        notes: projectForm.ces.notes,
-      } : null,
-      cet: projectForm.cet.inspected ? {
-        inspected: true,
-        date: projectForm.cet.date || null,
-        notes: projectForm.cet.notes,
-      } : null,
     };
 
     if (editingProject) {
@@ -294,13 +277,10 @@ export default function BinaCoreApp() {
     setEditingProject(null);
     setProjectForm({
       name: '',
+      description: '',
       password: '',
       buildingType: 'immeuble',
       numberOfFloors: '',
-      rebarInspectionDate: '',
-      concretePouringDate: '',
-      ces: { inspected: false, date: '', notes: '' },
-      cet: { inspected: false, date: '', notes: '' },
     });
   };
 
@@ -770,13 +750,10 @@ export default function BinaCoreApp() {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => { setEditingProject(project); setProjectForm({
                                     name: project.name,
+                                    description: project.description || '',
                                     password: project.password,
                                     buildingType: project.buildingType,
                                     numberOfFloors: project.numberOfFloors.toString(),
-                                    rebarInspectionDate: project.rebarInspectionDate || '',
-                                    concretePouringDate: project.concretePouringDate || '',
-                                    ces: project.ces || { inspected: false, date: '', notes: '' },
-                                    cet: project.cet || { inspected: false, date: '', notes: '' },
                                   }); setProjectDialogOpen(true); }}>
                                     <Pencil className="h-4 w-4 mr-2" />
                                     {t.common.edit}
@@ -811,14 +788,6 @@ export default function BinaCoreApp() {
                               <div>
                                 <p className="text-muted-foreground">{t.dashboard.progress}</p>
                                 <p className="font-medium">{progress}%</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground text-xs">{t.projects.rebarInspectionDate}</p>
-                                <p className="font-medium text-sm">{formatDate(project.rebarInspectionDate, language)}</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground text-xs">{t.projects.concretePouringDate}</p>
-                                <p className="font-medium text-sm">{formatDate(project.concretePouringDate, language)}</p>
                               </div>
                             </div>
                             <Progress value={progress} className="h-2" />
@@ -1393,6 +1362,16 @@ export default function BinaCoreApp() {
                 />
               </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">{t.projects.description}</Label>
+              <Textarea
+                id="description"
+                value={projectForm.description}
+                onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
+                placeholder={language === 'fr' ? 'Décrivez votre projet...' : 'Describe your project...'}
+                rows={3}
+              />
+            </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="buildingType">{t.projects.buildingType}</Label>
@@ -1421,107 +1400,6 @@ export default function BinaCoreApp() {
                   value={projectForm.numberOfFloors}
                   onChange={(e) => setProjectForm({ ...projectForm, numberOfFloors: e.target.value })}
                 />
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="rebarDate">{t.projects.rebarInspectionDate}</Label>
-                <Input
-                  id="rebarDate"
-                  type="date"
-                  value={projectForm.rebarInspectionDate}
-                  onChange={(e) => setProjectForm({ ...projectForm, rebarInspectionDate: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="concreteDate">{t.projects.concretePouringDate}</Label>
-                <Input
-                  id="concreteDate"
-                  type="date"
-                  value={projectForm.concretePouringDate}
-                  onChange={(e) => setProjectForm({ ...projectForm, concretePouringDate: e.target.value })}
-                />
-              </div>
-            </div>
-            
-            {/* CES/CET Section */}
-            <div className="border-t pt-4">
-              <h3 className="font-semibold mb-4">{t.cesCet.title}</h3>
-              <div className="space-y-4">
-                <div className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="cesInspected"
-                      checked={projectForm.ces.inspected}
-                      onChange={(e) => setProjectForm({
-                        ...projectForm,
-                        ces: { ...projectForm.ces, inspected: e.target.checked }
-                      })}
-                      className="h-4 w-4"
-                    />
-                    <Label htmlFor="cesInspected" className="font-medium">{t.cesCet.ces}</Label>
-                  </div>
-                  {projectForm.ces.inspected && (
-                    <>
-                      <Input
-                        type="date"
-                        value={projectForm.ces.date || ''}
-                        onChange={(e) => setProjectForm({
-                          ...projectForm,
-                          ces: { ...projectForm.ces, date: e.target.value }
-                        })}
-                        placeholder={language === 'fr' ? 'Date' : 'Date'}
-                      />
-                      <Textarea
-                        value={projectForm.ces.notes || ''}
-                        onChange={(e) => setProjectForm({
-                          ...projectForm,
-                          ces: { ...projectForm.ces, notes: e.target.value }
-                        })}
-                        placeholder={language === 'fr' ? 'Notes' : 'Notes'}
-                        rows={2}
-                      />
-                    </>
-                  )}
-                </div>
-                <div className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="cetInspected"
-                      checked={projectForm.cet.inspected}
-                      onChange={(e) => setProjectForm({
-                        ...projectForm,
-                        cet: { ...projectForm.cet, inspected: e.target.checked }
-                      })}
-                      className="h-4 w-4"
-                    />
-                    <Label htmlFor="cetInspected" className="font-medium">{t.cesCet.cet}</Label>
-                  </div>
-                  {projectForm.cet.inspected && (
-                    <>
-                      <Input
-                        type="date"
-                        value={projectForm.cet.date || ''}
-                        onChange={(e) => setProjectForm({
-                          ...projectForm,
-                          cet: { ...projectForm.cet, date: e.target.value }
-                        })}
-                        placeholder={language === 'fr' ? 'Date' : 'Date'}
-                      />
-                      <Textarea
-                        value={projectForm.cet.notes || ''}
-                        onChange={(e) => setProjectForm({
-                          ...projectForm,
-                          cet: { ...projectForm.cet, notes: e.target.value }
-                        })}
-                        placeholder={language === 'fr' ? 'Notes' : 'Notes'}
-                        rows={2}
-                      />
-                    </>
-                  )}
-                </div>
               </div>
             </div>
           </div>

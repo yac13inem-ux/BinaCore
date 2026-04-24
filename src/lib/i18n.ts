@@ -19,6 +19,7 @@ export type Translations = {
     shareProject: string;
     projectName: string;
     password: string;
+    description: string;
     buildingType: string;
     numberOfFloors: string;
     rebarInspectionDate: string;
@@ -58,6 +59,7 @@ export type Translations = {
     shareFloor: string;
     floorName: string;
     floorNumber: string;
+    grosOeuvre: string;
     rebarInspectionDate: string;
     concretePouringDate: string;
     notes: string;
@@ -186,6 +188,7 @@ export const translations: Record<Language, Translations> = {
       shareProject: 'Partager le projet',
       projectName: 'Nom du projet',
       password: 'Mot de passe',
+      description: 'Description',
       buildingType: 'Type de bâtiment',
       numberOfFloors: 'Nombre d\'étages',
       rebarInspectionDate: 'Date de vérification du ferraillage',
@@ -225,6 +228,7 @@ export const translations: Record<Language, Translations> = {
       shareFloor: 'Partager l\'étage',
       floorName: 'Nom de l\'étage',
       floorNumber: 'Numéro d\'étage',
+      grosOeuvre: 'Gros Œuvre',
       rebarInspectionDate: 'Date de vérification du ferraillage',
       concretePouringDate: 'Date de coulage du béton',
       notes: 'Notes',
@@ -351,6 +355,7 @@ export const translations: Record<Language, Translations> = {
       shareProject: 'Share Project',
       projectName: 'Project Name',
       password: 'Password',
+      description: 'Description',
       buildingType: 'Building Type',
       numberOfFloors: 'Number of Floors',
       rebarInspectionDate: 'Rebar Inspection Date',
@@ -390,6 +395,7 @@ export const translations: Record<Language, Translations> = {
       shareFloor: 'Share Floor',
       floorName: 'Floor Name',
       floorNumber: 'Floor Number',
+      grosOeuvre: 'Gros Œuvre',
       rebarInspectionDate: 'Rebar Inspection Date',
       concretePouringDate: 'Concrete Pouring Date',
       notes: 'Notes',
