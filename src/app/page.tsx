@@ -73,8 +73,16 @@ import {
   createProject,
   updateProject,
   deleteProject as deleteProjectStorage,
+  Block,
+  getBlocks,
+  getBlocksByProject,
+  getBlockById,
+  createBlock,
+  updateBlock,
+  deleteBlock as deleteBlockStorage,
   Floor,
   getFloors,
+  getFloorsByBlock,
   createFloor,
   updateFloor,
   deleteFloor as deleteFloorStorage,
@@ -94,9 +102,10 @@ import {
   shareToSystem,
   CES,
   CET,
+  getBlockName,
 } from '@/lib/storage';
 
-type TabValue = 'dashboard' | 'projects' | 'floors' | 'reports' | 'problems' | 'settings';
+type TabValue = 'dashboard' | 'projects' | 'reports' | 'problems' | 'settings';
 
 export default function BinaCoreApp() {
   const { t, language, setLanguage } = useLanguage();
@@ -107,6 +116,7 @@ export default function BinaCoreApp() {
 
   // Data
   const [projects, setProjects] = useState<Project[]>([]);
+  const [blocks, setBlocks] = useState<Block[]>([]);
   const [floors, setFloors] = useState<Floor[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [problems, setProblems] = useState<Problem[]>([]);
@@ -114,6 +124,7 @@ export default function BinaCoreApp() {
   // Dialog states
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [projectPasswordDialogOpen, setProjectPasswordDialogOpen] = useState(false);
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const [floorDialogOpen, setFloorDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [problemDialogOpen, setProblemDialogOpen] = useState(false);
@@ -121,13 +132,17 @@ export default function BinaCoreApp() {
 
   // Form states
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [editingBlock, setEditingBlock] = useState<Block | null>(null);
   const [editingFloor, setEditingFloor] = useState<Floor | null>(null);
   const [editingReport, setEditingReport] = useState<Report | null>(null);
   const [editingProblem, setEditingProblem] = useState<Problem | null>(null);
   const [selectedProjectForView, setSelectedProjectForView] = useState<Project | null>(null);
+  const [selectedProjectForBlocks, setSelectedProjectForBlocks] = useState<Project | null>(null);
+  const [expandedBlocks, setExpandedBlocks] = useState<Set<string>>(new Set());
+  const [selectedBlockProjectId, setSelectedBlockProjectId] = useState<string>('');
   const [projectPassword, setProjectPassword] = useState('');
   const [deletingItem, setDeletingItem] = useState<{
-    type: 'project' | 'floor' | 'report' | 'problem';
+    type: 'project' | 'block' | 'floor' | 'report' | 'problem';
     id: string;
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -152,6 +167,17 @@ export default function BinaCoreApp() {
     concretePouringDate: '',
     ces: { inspected: false, date: '', notes: '' } as CES,
     cet: { inspected: false, date: '', notes: '' } as CET,
+  });
+
+  // Block form
+  const [blockForm, setBlockForm] = useState<{
+    projectId: string;
+    blockNumber: string;
+    blockName: string;
+  }>({
+    projectId: '',
+    blockNumber: '',
+    blockName: '',
   });
 
   // Report form
@@ -183,20 +209,33 @@ export default function BinaCoreApp() {
   });
 
   // Floor form
-  const [floorForm, setFloorForm] = useState({
+  const [floorForm, setFloorForm] = useState<{
+    projectId: string;
+    blockId: string;
+    floorNumber: string;
+    floorName: string;
+    rebarInspectionDate: string;
+    concretePouringDate: string;
+    ces: CES;
+    cet: CET;
+    status: 'notStarted' | 'inProgress' | 'completed';
+    notes: string;
+  }>({
     projectId: '',
+    blockId: '',
     floorNumber: '',
     floorName: '',
     rebarInspectionDate: '',
     concretePouringDate: '',
     ces: { inspected: false, date: '', notes: '' } as CES,
     cet: { inspected: false, date: '', notes: '' } as CET,
-    status: 'notStarted' as const,
+    status: 'notStarted',
     notes: '',
   });
 
   const loadData = () => {
     setProjects(getProjects());
+    setBlocks(getBlocks());
     setFloors(getFloors());
     setReports(getReports());
     setProblems(getProblems());
@@ -265,9 +304,124 @@ export default function BinaCoreApp() {
     });
   };
 
+  const handleSaveBlock = () => {
+    if (!blockForm.projectId || !blockForm.blockNumber || !blockForm.blockName) {
+      toast({
+        title: t.common.error,
+        description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const blockData: Omit<Block, 'id' | 'createdAt' | 'updatedAt'> = {
+      projectId: blockForm.projectId,
+      blockNumber: parseInt(blockForm.blockNumber),
+      blockName: blockForm.blockName,
+    };
+
+    if (editingBlock) {
+      updateBlock(editingBlock.id, blockData);
+    } else {
+      createBlock(blockData);
+    }
+
+    loadData();
+    resetBlockForm();
+    setBlockDialogOpen(false);
+    toast({
+      title: t.common.success,
+      description: editingBlock ? language === 'fr' ? 'Bloc mis à jour' : 'Block updated' : language === 'fr' ? 'Bloc créé' : 'Block created',
+    });
+  };
+
+  const resetBlockForm = () => {
+    setEditingBlock(null);
+    setBlockForm({
+      projectId: '',
+      blockNumber: '',
+      blockName: '',
+    });
+  };
+
   const handleViewProject = (project: Project) => {
     setSelectedProjectForView(project);
     setProjectPasswordDialogOpen(true);
+  };
+
+  const handleOpenProjectBlocks = (project: Project) => {
+    setSelectedProjectForBlocks(project);
+  };
+
+  const handleCloseProjectBlocks = () => {
+    setSelectedProjectForBlocks(null);
+    setExpandedBlocks(new Set());
+  };
+
+  const toggleBlockExpansion = (blockId: string) => {
+    setExpandedBlocks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(blockId)) {
+        newSet.delete(blockId);
+      } else {
+        newSet.add(blockId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleAddBlock = (projectId: string) => {
+    setBlockForm({
+      projectId: projectId,
+      blockNumber: '',
+      blockName: '',
+    });
+    setEditingBlock(null);
+    setBlockDialogOpen(true);
+  };
+
+  const handleEditBlock = (block: Block) => {
+    setEditingBlock(block);
+    setBlockForm({
+      projectId: block.projectId,
+      blockNumber: block.blockNumber.toString(),
+      blockName: block.blockName,
+    });
+    setBlockDialogOpen(true);
+  };
+
+  const handleAddFloor = (projectId: string, blockId: string) => {
+    setFloorForm({
+      projectId: projectId,
+      blockId: blockId,
+      floorNumber: '',
+      floorName: '',
+      rebarInspectionDate: '',
+      concretePouringDate: '',
+      ces: { inspected: false, date: '', notes: '' },
+      cet: { inspected: false, date: '', notes: '' },
+      status: 'notStarted',
+      notes: '',
+    });
+    setEditingFloor(null);
+    setFloorDialogOpen(true);
+  };
+
+  const handleEditFloor = (floor: Floor) => {
+    setEditingFloor(floor);
+    setFloorForm({
+      projectId: floor.projectId,
+      blockId: floor.blockId,
+      floorNumber: floor.floorNumber.toString(),
+      floorName: floor.floorName,
+      rebarInspectionDate: floor.rebarInspectionDate || '',
+      concretePouringDate: floor.concretePouringDate || '',
+      ces: floor.ces || { inspected: false, date: '', notes: '' },
+      cet: floor.cet || { inspected: false, date: '', notes: '' },
+      status: floor.status,
+      notes: floor.notes || '',
+    });
+    setFloorDialogOpen(true);
   };
 
   const handleAccessProject = () => {
@@ -293,6 +447,8 @@ export default function BinaCoreApp() {
 
     if (deletingItem.type === 'project') {
       deleteProjectStorage(deletingItem.id);
+    } else if (deletingItem.type === 'block') {
+      deleteBlockStorage(deletingItem.id);
     } else if (deletingItem.type === 'floor') {
       deleteFloorStorage(deletingItem.id);
     } else if (deletingItem.type === 'report') {
@@ -402,7 +558,7 @@ export default function BinaCoreApp() {
   };
 
   const handleSaveFloor = () => {
-    if (!floorForm.projectId || !floorForm.floorNumber || !floorForm.floorName) {
+    if (!floorForm.blockId || !floorForm.projectId || !floorForm.floorNumber || !floorForm.floorName) {
       toast({
         title: t.common.error,
         description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill in all required fields',
@@ -413,6 +569,7 @@ export default function BinaCoreApp() {
 
     const floorData: Omit<Floor, 'id' | 'createdAt' | 'updatedAt'> = {
       projectId: floorForm.projectId,
+      blockId: floorForm.blockId,
       floorNumber: parseInt(floorForm.floorNumber),
       floorName: floorForm.floorName,
       rebarInspectionDate: floorForm.rebarInspectionDate || null,
@@ -449,6 +606,7 @@ export default function BinaCoreApp() {
     setEditingFloor(null);
     setFloorForm({
       projectId: '',
+      blockId: '',
       floorNumber: '',
       floorName: '',
       rebarInspectionDate: '',
@@ -570,183 +728,294 @@ export default function BinaCoreApp() {
 
           {/* Projects Tab */}
           <TabsContent value="projects" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-3xl font-bold">{t.projects.title}</h2>
-              <Button onClick={() => { resetProjectForm(); setProjectDialogOpen(true); }}>
-                <Plus className="h-4 w-4 mr-2" />
-                {t.projects.addProject}
-              </Button>
-            </div>
+            {!selectedProjectForBlocks ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-3xl font-bold">{t.projects.title}</h2>
+                  <Button onClick={() => { resetProjectForm(); setProjectDialogOpen(true); }}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t.projects.addProject}
+                  </Button>
+                </div>
 
-            {projects.length === 0 ? (
-              <Card className="p-12 text-center">
-                <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-lg text-muted-foreground">{t.projects.noProjectsFound}</p>
-              </Card>
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {projects.map((project) => {
-                  const progress = getProjectProgress(project);
-                  return (
-                    <Card key={project.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg line-clamp-2">{project.name}</CardTitle>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <Menu className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleViewProject(project)}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                {t.common.view}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => { setEditingProject(project); setProjectForm({
-                                name: project.name,
-                                password: project.password,
-                                buildingType: project.buildingType,
-                                numberOfFloors: project.numberOfFloors.toString(),
-                                rebarInspectionDate: project.rebarInspectionDate || '',
-                                concretePouringDate: project.concretePouringDate || '',
-                                ces: project.ces || { inspected: false, date: '', notes: '' },
-                                cet: project.cet || { inspected: false, date: '', notes: '' },
-                              }); setProjectDialogOpen(true); }}>
-                                <Pencil className="h-4 w-4 mr-2" />
-                                {t.common.edit}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleShareProject(project)}>
-                                <Share2 className="h-4 w-4 mr-2" />
-                                {t.common.share}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setDeletingItem({ type: 'project', id: project.id });
-                                  setDeleteDialogOpen(true);
-                                }}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                {t.common.delete}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        <CardDescription>
-                          {t.projects.buildingTypeOptions[project.buildingType]}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">{t.projects.numberOfFloors}</p>
-                            <p className="font-medium">{project.numberOfFloors}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">{t.dashboard.progress}</p>
-                            <p className="font-medium">{progress}%</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-xs">{t.projects.rebarInspectionDate}</p>
-                            <p className="font-medium text-sm">{formatDate(project.rebarInspectionDate, language)}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-xs">{t.projects.concretePouringDate}</p>
-                            <p className="font-medium text-sm">{formatDate(project.concretePouringDate, language)}</p>
-                          </div>
-                        </div>
-                        <Progress value={progress} className="h-2" />
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
-                          <span>{t.dashboard.lastUpdate}</span>
-                          <span className="flex items-center">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {formatDate(project.updatedAt, language)}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Floors Tab */}
-          <TabsContent value="floors" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-3xl font-bold">{t.floors.title}</h2>
-              <Button onClick={() => { resetFloorForm(); setFloorDialogOpen(true); }}>
-                <Plus className="h-4 w-4 mr-2" />
-                {t.floors.addFloor}
-              </Button>
-            </div>
-
-            {floors.length === 0 ? (
-              <Card className="p-12 text-center">
-                <Layers className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-lg text-muted-foreground">{t.floors.noFloors}</p>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {floors.map((floor) => (
-                  <Card key={floor.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-lg">{floor.floorName}</CardTitle>
-                        <Badge className={
-                          floor.status === 'completed' ? 'bg-green-500 hover:bg-green-600' :
-                          floor.status === 'inProgress' ? 'bg-orange-500 hover:bg-orange-600' :
-                          'bg-gray-500 hover:bg-gray-600'
-                        }>
-                          {t.floors.statuses[floor.status]}
-                        </Badge>
-                      </div>
-                      <CardDescription>
-                        {t.floors.floorNumber} {floor.floorNumber} • {getProjectName(floor.projectId)}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <p className="text-muted-foreground text-xs">{t.floors.rebarInspectionDate}</p>
-                          <p className="font-medium">{formatDate(floor.rebarInspectionDate, language)}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-xs">{t.floors.concretePouringDate}</p>
-                          <p className="font-medium">{formatDate(floor.concretePouringDate, language)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="checkbox"
-                          checked={floor.ces?.inspected || false}
-                          disabled
-                          className="h-4 w-4"
-                        />
-                        <span className="text-sm text-muted-foreground">CES</span>
-                        {floor.ces?.inspected && (
-                          <Badge className="ml-2">{formatDate(floor.ces.date, language)}</Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="checkbox"
-                          checked={floor.cet?.inspected || false}
-                          disabled
-                          className="h-4 w-4"
-                        />
-                        <span className="text-sm text-muted-foreground">CET</span>
-                        {floor.cet?.inspected && (
-                          <Badge className="ml-2">{formatDate(floor.cet.date, language)}</Badge>
-                        )}
-                      </div>
-                      {floor.notes && (
-                        <p className="text-sm text-muted-foreground">{floor.notes}</p>
-                      )}
-                    </CardContent>
+                {projects.length === 0 ? (
+                  <Card className="p-12 text-center">
+                    <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                    <p className="text-lg text-muted-foreground">{t.projects.noProjectsFound}</p>
                   </Card>
-                ))}
+                ) : (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {projects.map((project) => {
+                      const progress = getProjectProgress(project);
+                      const projectBlocks = getBlocksByProject(project.id);
+                      return (
+                        <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <CardTitle className="text-lg line-clamp-2">{project.name}</CardTitle>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <Menu className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleViewProject(project)}>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    {t.common.view}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleOpenProjectBlocks(project)}>
+                                    <Layers className="h-4 w-4 mr-2" />
+                                    {language === 'fr' ? 'Voir Blocs' : 'View Blocks'}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => { setEditingProject(project); setProjectForm({
+                                    name: project.name,
+                                    password: project.password,
+                                    buildingType: project.buildingType,
+                                    numberOfFloors: project.numberOfFloors.toString(),
+                                    rebarInspectionDate: project.rebarInspectionDate || '',
+                                    concretePouringDate: project.concretePouringDate || '',
+                                    ces: project.ces || { inspected: false, date: '', notes: '' },
+                                    cet: project.cet || { inspected: false, date: '', notes: '' },
+                                  }); setProjectDialogOpen(true); }}>
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    {t.common.edit}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleShareProject(project)}>
+                                    <Share2 className="h-4 w-4 mr-2" />
+                                    {t.common.share}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setDeletingItem({ type: 'project', id: project.id });
+                                      setDeleteDialogOpen(true);
+                                    }}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    {t.common.delete}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                            <CardDescription>
+                              {t.projects.buildingTypeOptions[project.buildingType]}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="text-muted-foreground">{language === 'fr' ? 'Blocs' : 'Blocks'}</p>
+                                <p className="font-medium">{projectBlocks.length}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">{t.dashboard.progress}</p>
+                                <p className="font-medium">{progress}%</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">{t.projects.rebarInspectionDate}</p>
+                                <p className="font-medium text-sm">{formatDate(project.rebarInspectionDate, language)}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">{t.projects.concretePouringDate}</p>
+                                <p className="font-medium text-sm">{formatDate(project.concretePouringDate, language)}</p>
+                              </div>
+                            </div>
+                            <Progress value={progress} className="h-2" />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => handleOpenProjectBlocks(project)}
+                              >
+                                <Layers className="h-4 w-4 mr-1" />
+                                {language === 'fr' ? 'Voir Blocs' : 'View Blocks'}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            ) : (
+              // Detailed Project View with Blocks and Floors
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Button variant="ghost" onClick={handleCloseProjectBlocks}>
+                      {language === 'fr' ? '← Retour' : '← Back'}
+                    </Button>
+                    <div>
+                      <h2 className="text-3xl font-bold">{selectedProjectForBlocks.name}</h2>
+                      <p className="text-muted-foreground">{t.projects.buildingTypeOptions[selectedProjectForBlocks.buildingType]}</p>
+                    </div>
+                  </div>
+                  <Button onClick={() => handleAddBlock(selectedProjectForBlocks.id)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {language === 'fr' ? 'Ajouter Bloc' : 'Add Block'}
+                  </Button>
+                </div>
+
+                {(() => {
+                  const projectBlocks = getBlocksByProject(selectedProjectForBlocks.id);
+                  if (projectBlocks.length === 0) {
+                    return (
+                      <Card className="p-12 text-center">
+                        <Layers className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <p className="text-lg text-muted-foreground">
+                          {language === 'fr' ? 'Aucun bloc dans ce projet' : 'No blocks in this project'}
+                        </p>
+                      </Card>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {projectBlocks.map((block) => {
+                        const blockFloors = getFloorsByBlock(block.id);
+                        const isExpanded = expandedBlocks.has(block.id);
+                        return (
+                          <Card key={block.id}>
+                            <CardHeader>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => toggleBlockExpansion(block.id)}
+                                  >
+                                    {isExpanded ? (
+                                      <span className="transform rotate-90">▶</span>
+                                    ) : (
+                                      <span>▶</span>
+                                    )}
+                                  </Button>
+                                  <div>
+                                    <CardTitle className="text-lg">
+                                      {language === 'fr' ? 'Bloc' : 'Block'} {block.blockNumber} - {block.blockName}
+                                    </CardTitle>
+                                    <CardDescription>
+                                      {blockFloors.length} {language === 'fr' ? 'étage(s)' : 'floor(s)'}
+                                    </CardDescription>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon">
+                                        <Menu className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => handleEditBlock(block)}>
+                                        <Pencil className="h-4 w-4 mr-2" />
+                                        {t.common.edit}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => {
+                                          setDeletingItem({ type: 'block', id: block.id });
+                                          setDeleteDialogOpen(true);
+                                        }}
+                                        className="text-destructive"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        {t.common.delete}
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            {isExpanded && (
+                              <CardContent className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-medium">
+                                    {language === 'fr' ? 'Étages (طوابق)' : 'Floors (طوابق)'}
+                                  </h4>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleAddFloor(selectedProjectForBlocks.id, block.id)}
+                                  >
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    {language === 'fr' ? 'Ajouter Étage' : 'Add Floor'}
+                                  </Button>
+                                </div>
+                                {blockFloors.length === 0 ? (
+                                  <div className="text-center py-8 text-muted-foreground">
+                                    {language === 'fr' ? 'Aucun étage dans ce bloc' : 'No floors in this block'}
+                                  </div>
+                                ) : (
+                                  <div className="grid gap-3">
+                                    {blockFloors.map((floor) => (
+                                      <div
+                                        key={floor.id}
+                                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors"
+                                      >
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2">
+                                            <Badge variant="secondary">
+                                              {floor.floorNumber}
+                                            </Badge>
+                                            <span className="font-medium">{floor.floorName}</span>
+                                          </div>
+                                          <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                                            <span>
+                                              {language === 'fr' ? 'Statut' : 'Status'}: 
+                                              <Badge
+                                                variant={
+                                                  floor.status === 'completed' ? 'default' :
+                                                  floor.status === 'inProgress' ? 'secondary' : 'outline'
+                                                }
+                                              >
+                                                {t.floors.statuses[floor.status]}
+                                              </Badge>
+                                            </span>
+                                            {floor.rebarInspectionDate && (
+                                              <span>
+                                                {t.floors.rebarInspectionDate}: {formatDate(floor.rebarInspectionDate, language)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                              <Menu className="h-4 w-4" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => handleEditFloor(floor)}>
+                                              <Pencil className="h-4 w-4 mr-2" />
+                                              {t.common.edit}
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                              onClick={() => {
+                                                setDeletingItem({ type: 'floor', id: floor.id });
+                                                setDeleteDialogOpen(true);
+                                              }}
+                                              className="text-destructive"
+                                            >
+                                              <Trash2 className="h-4 w-4 mr-2" />
+                                              {t.common.delete}
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </CardContent>
+                            )}
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </TabsContent>
@@ -1085,15 +1354,6 @@ export default function BinaCoreApp() {
             <span className="text-[10px] mt-1">{t.navigation.problems}</span>
           </Button>
           <Button
-            variant={activeTab === 'floors' ? 'default' : 'ghost'}
-            size="icon"
-            onClick={() => setActiveTab('floors')}
-            className="flex-col h-14 w-14"
-          >
-            <Layers className="h-5 w-5" />
-            <span className="text-[10px] mt-1">{t.navigation.floors}</span>
-          </Button>
-          <Button
             variant={activeTab === 'settings' ? 'default' : 'ghost'}
             size="icon"
             onClick={() => setActiveTab('settings')}
@@ -1305,6 +1565,74 @@ export default function BinaCoreApp() {
         </DialogContent>
       </Dialog>
 
+      {/* Block Dialog */}
+      <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {editingBlock 
+                ? (language === 'fr' ? 'Modifier le Bloc' : 'Edit Block') 
+                : (language === 'fr' ? 'Ajouter un Bloc' : 'Add Block')
+              }
+            </DialogTitle>
+            <DialogDescription>
+              {editingBlock ? (
+                language === 'fr' ? 'Modifier les informations du bloc' : 'Update block information'
+              ) : (
+                language === 'fr' ? 'Ajouter un nouveau bloc au projet' : 'Add a new block to the project'
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="blockProject">{t.reports.linkProject}</Label>
+              <Select
+                value={blockForm.projectId}
+                onValueChange={(value) => setBlockForm({ ...blockForm, projectId: value })}
+                disabled={!!editingBlock}
+              >
+                <SelectTrigger id="blockProject">
+                  <SelectValue placeholder={language === 'fr' ? 'Sélectionner un projet' : 'Select a project'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="blockNumber">{language === 'fr' ? 'Numéro de bloc *' : 'Block Number *'}</Label>
+              <Input
+                id="blockNumber"
+                type="number"
+                min="1"
+                value={blockForm.blockNumber}
+                onChange={(e) => setBlockForm({ ...blockForm, blockNumber: e.target.value })}
+                placeholder={language === 'fr' ? '1' : '1'}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="blockName">{language === 'fr' ? 'Nom du bloc *' : 'Block Name *'}</Label>
+              <Input
+                id="blockName"
+                value={blockForm.blockName}
+                onChange={(e) => setBlockForm({ ...blockForm, blockName: e.target.value })}
+                placeholder={language === 'fr' ? 'Ex: Bloc A' : 'Ex: Block A'}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { resetBlockForm(); setBlockDialogOpen(false); }}>
+              {t.common.cancel}
+            </Button>
+            <Button onClick={handleSaveBlock}>{t.common.save}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Report Dialog */}
       <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
         <DialogContent className="max-w-2xl">
@@ -1471,7 +1799,10 @@ export default function BinaCoreApp() {
                 <Label htmlFor="floorProject">{t.reports.linkProject} *</Label>
                 <Select
                   value={floorForm.projectId}
-                  onValueChange={(value) => setFloorForm({ ...floorForm, projectId: value })}
+                  onValueChange={(value) => {
+                    setFloorForm({ ...floorForm, projectId: value, blockId: '' });
+                  }}
+                  disabled={!!editingFloor}
                 >
                   <SelectTrigger id="floorProject">
                     <SelectValue placeholder={language === 'fr' ? 'Sélectionner un projet' : 'Select a project'} />
@@ -1485,25 +1816,44 @@ export default function BinaCoreApp() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2">
-                  <Label htmlFor="floorNumber">{t.floors.floorNumber} *</Label>
-                  <Input
-                    id="floorNumber"
-                    type="number"
-                    min="1"
-                    value={floorForm.floorNumber}
-                    onChange={(e) => setFloorForm({ ...floorForm, floorNumber: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="floorName">{t.floors.floorName} *</Label>
-                  <Input
-                    id="floorName"
-                    value={floorForm.floorName}
-                    onChange={(e) => setFloorForm({ ...floorForm, floorName: e.target.value })}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="floorBlock">{language === 'fr' ? 'Bloc (بلوك) *' : 'Block (بلوك) *'}</Label>
+                <Select
+                  value={floorForm.blockId}
+                  onValueChange={(value) => setFloorForm({ ...floorForm, blockId: value })}
+                  disabled={!floorForm.projectId}
+                >
+                  <SelectTrigger id="floorBlock">
+                    <SelectValue placeholder={language === 'fr' ? 'Sélectionner un bloc' : 'Select a block'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {floorForm.projectId && getBlocksByProject(floorForm.projectId).map((block) => (
+                      <SelectItem key={block.id} value={block.id}>
+                        {language === 'fr' ? 'Bloc' : 'Block'} {block.blockNumber} - {block.blockName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="floorNumber">{t.floors.floorNumber} *</Label>
+                <Input
+                  id="floorNumber"
+                  type="number"
+                  min="1"
+                  value={floorForm.floorNumber}
+                  onChange={(e) => setFloorForm({ ...floorForm, floorNumber: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="floorName">{t.floors.floorName} *</Label>
+                <Input
+                  id="floorName"
+                  value={floorForm.floorName}
+                  onChange={(e) => setFloorForm({ ...floorForm, floorName: e.target.value })}
+                />
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2">

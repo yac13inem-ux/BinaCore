@@ -13,9 +13,19 @@ export interface Project {
   cet?: CET | null;
 }
 
+export interface Block {
+  id: string;
+  projectId: string;
+  blockName: string;
+  blockNumber: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Floor {
   id: string;
   projectId: string;
+  blockId: string;
   floorNumber: number;
   floorName: string;
   rebarInspectionDate: string | null;
@@ -63,6 +73,7 @@ export interface Problem {
 
 // Storage keys
 const PROJECTS_KEY = 'binacore_projects';
+const BLOCKS_KEY = 'binacore_blocks';
 const FLOORS_KEY = 'binacore_floors';
 const REPORTS_KEY = 'binacore_reports';
 const PROBLEMS_KEY = 'binacore_problems';
@@ -115,7 +126,10 @@ export function deleteProject(id: string): void {
   const projects = getProjects().filter(p => p.id !== id);
   setToStorage(PROJECTS_KEY, projects);
 
-  // Also delete associated floors, reports and problems
+  // Also delete associated blocks, floors, reports and problems
+  const blocks = getBlocks().filter(b => b.projectId !== id);
+  setToStorage(BLOCKS_KEY, blocks);
+
   const floors = getFloors().filter(f => f.projectId !== id);
   setToStorage(FLOORS_KEY, floors);
 
@@ -124,6 +138,66 @@ export function deleteProject(id: string): void {
 
   const problems = getProblems().filter(p => p.projectId !== id);
   setToStorage(PROBLEMS_KEY, problems);
+}
+
+// Blocks
+export function getBlocks(): Block[] {
+  return getFromStorage<Block[]>(BLOCKS_KEY, []);
+}
+
+export function getBlocksByProject(projectId: string): Block[] {
+  return getBlocks().filter(b => b.projectId === projectId);
+}
+
+export function getBlockById(id: string): Block | undefined {
+  const blocks = getBlocks();
+  return blocks.find(b => b.id === id);
+}
+
+export function saveBlock(block: Block): void {
+  const blocks = getBlocks();
+  const existingIndex = blocks.findIndex(b => b.id === block.id);
+
+  if (existingIndex >= 0) {
+    blocks[existingIndex] = { ...block, updatedAt: new Date().toISOString() };
+  } else {
+    blocks.push(block);
+  }
+
+  setToStorage(BLOCKS_KEY, blocks);
+}
+
+export function deleteBlock(id: string): void {
+  const blocks = getBlocks().filter(b => b.id !== id);
+  setToStorage(BLOCKS_KEY, blocks);
+
+  // Also delete associated floors
+  const floors = getFloors().filter(f => f.blockId !== id);
+  setToStorage(FLOORS_KEY, floors);
+}
+
+export function createBlock(data: Omit<Block, 'id' | 'createdAt' | 'updatedAt'>): Block {
+  const block: Block = {
+    ...data,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  saveBlock(block);
+  return block;
+}
+
+export function updateBlock(id: string, data: Partial<Block>): Block | null {
+  const blocks = getBlocks();
+  const block = blocks.find(b => b.id === id);
+
+  if (block) {
+    const updated = { ...block, ...data, updatedAt: new Date().toISOString() };
+    saveBlock(updated);
+    return updated;
+  }
+
+  return null;
 }
 
 // Floors
@@ -135,9 +209,18 @@ export function getFloorsByProject(projectId: string): Floor[] {
   return getFloors().filter(f => f.projectId === projectId);
 }
 
+export function getFloorsByBlock(blockId: string): Floor[] {
+  return getFloors().filter(f => f.blockId === blockId);
+}
+
 export function getFloorById(id: string): Floor | undefined {
   const floors = getFloors();
   return floors.find(f => f.id === id);
+}
+
+export function getBlockName(blockId: string): string {
+  const block = getBlockById(blockId);
+  return block ? `${block.blockNumber} - ${block.blockName}` : 'Unknown Block';
 }
 
 export function saveFloor(floor: Floor): void {

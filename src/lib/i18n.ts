@@ -39,6 +39,15 @@ export type Translations = {
       commercial: string;
       other: string;
     };
+    blocks: {
+      title: string;
+      addBlock: string;
+      editBlock: string;
+      deleteBlock: string;
+      blockName: string;
+      blockNumber: string;
+      noBlocks: string;
+    };
   };
   floors: {
     title: string;
@@ -197,6 +206,15 @@ export const translations: Record<Language, Translations> = {
         commercial: 'Commercial',
         other: 'Autre',
       },
+      blocks: {
+        title: 'Blocs',
+        addBlock: 'Ajouter un bloc',
+        editBlock: 'Modifier le bloc',
+        deleteBlock: 'Supprimer le bloc',
+        blockName: 'Nom du bloc',
+        blockNumber: 'Numéro de bloc',
+        noBlocks: 'Aucun bloc',
+      },
     },
     floors: {
       title: 'Étages',
@@ -352,6 +370,15 @@ export const translations: Record<Language, Translations> = {
         bureau: 'Office',
         commercial: 'Commercial',
         other: 'Other',
+      },
+      blocks: {
+        title: 'Blocks',
+        addBlock: 'Add Block',
+        editBlock: 'Edit Block',
+        deleteBlock: 'Delete Block',
+        blockName: 'Block Name',
+        blockNumber: 'Block Number',
+        noBlocks: 'No blocks',
       },
     },
     floors: {
