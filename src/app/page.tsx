@@ -130,6 +130,8 @@ export default function BinaCoreApp() {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [problemDialogOpen, setProblemDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [passwordConfirmDialogOpen, setPasswordConfirmDialogOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
 
   // Form states
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -425,28 +427,103 @@ export default function BinaCoreApp() {
     }
   };
 
+  const handleDeleteRequest = (item: {
+    type: 'project' | 'block' | 'floor' | 'report' | 'problem';
+    id: string;
+  }) => {
+    // For projects, reports, and problems - require password
+    if (item.type === 'project' || item.type === 'report' || item.type === 'problem') {
+      setDeletingItem(item);
+      setDeletePassword('');
+      setPasswordConfirmDialogOpen(true);
+    } else {
+      // For blocks and floors - simple delete (nested under projects)
+      setDeletingItem(item);
+      setDeleteDialogOpen(true);
+    }
+  };
+
   const handleDeleteItem = () => {
     if (!deletingItem) return;
 
     if (deletingItem.type === 'project') {
-      deleteProjectStorage(deletingItem.id);
+      const project = getProjectById(deletingItem.id);
+      if (project && project.password === deletePassword) {
+        deleteProjectStorage(deletingItem.id);
+        setPasswordConfirmDialogOpen(false);
+        setDeletePassword('');
+        setDeletingItem(null);
+        loadData();
+        toast({
+          title: t.common.success,
+          description: language === 'fr' ? 'Projet supprimé' : 'Project deleted',
+        });
+      } else {
+        toast({
+          title: t.common.error,
+          description: t.common.passwordConfirm.wrongPassword,
+          variant: 'destructive',
+        });
+      }
     } else if (deletingItem.type === 'block') {
       deleteBlockStorage(deletingItem.id);
+      setDeleteDialogOpen(false);
+      setDeletingItem(null);
+      loadData();
+      toast({
+        title: t.common.success,
+        description: language === 'fr' ? 'Bloc supprimé' : 'Block deleted',
+      });
     } else if (deletingItem.type === 'floor') {
       deleteFloorStorage(deletingItem.id);
+      setDeleteDialogOpen(false);
+      setDeletingItem(null);
+      loadData();
+      toast({
+        title: t.common.success,
+        description: language === 'fr' ? 'Étage supprimé' : 'Floor deleted',
+      });
     } else if (deletingItem.type === 'report') {
-      deleteReportStorage(deletingItem.id);
+      const report = getReportById(deletingItem.id);
+      const project = report ? getProjectById(report.projectId) : null;
+      if (project && project.password === deletePassword) {
+        deleteReportStorage(deletingItem.id);
+        setPasswordConfirmDialogOpen(false);
+        setDeletePassword('');
+        setDeletingItem(null);
+        loadData();
+        toast({
+          title: t.common.success,
+          description: language === 'fr' ? 'Rapport supprimé' : 'Report deleted',
+        });
+      } else {
+        toast({
+          title: t.common.error,
+          description: t.common.passwordConfirm.wrongPassword,
+          variant: 'destructive',
+        });
+      }
     } else if (deletingItem.type === 'problem') {
-      deleteProblemStorage(deletingItem.id);
+      const problem = getProblemById(deletingItem.id);
+      const project = problem ? getProjectById(problem.projectId) : null;
+      if (project && project.password === deletePassword) {
+        deleteProblemStorage(deletingItem.id);
+        setPasswordConfirmDialogOpen(false);
+        setDeletePassword('');
+        setDeletingItem(null);
+        loadData();
+        toast({
+          title: t.common.success,
+          description: language === 'fr' ? 'Problème supprimé' : 'Problem deleted',
+        });
+      } else {
+        toast({
+          title: t.common.error,
+          description: t.common.passwordConfirm.wrongPassword,
+          variant: 'destructive',
+        });
+      }
     }
-
-    loadData();
-    setDeleteDialogOpen(false);
-    setDeletingItem(null);
-    toast({
-      title: t.common.success,
-      description: language === 'fr' ? 'Élément supprimé' : 'Item deleted',
-    });
   };
 
   const handleShareProject = (project: Project) => {
@@ -842,10 +919,7 @@ export default function BinaCoreApp() {
                                     {t.common.share}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    onClick={() => {
-                                      setDeletingItem({ type: 'project', id: project.id });
-                                      setDeleteDialogOpen(true);
-                                    }}
+                                    onClick={() => handleDeleteRequest({ type: 'project', id: project.id })}
                                     className="text-destructive"
                                   >
                                     <Trash2 className="h-4 w-4 mr-2" />
@@ -959,10 +1033,7 @@ export default function BinaCoreApp() {
                                         {t.common.edit}
                                       </DropdownMenuItem>
                                       <DropdownMenuItem
-                                        onClick={() => {
-                                          setDeletingItem({ type: 'block', id: block.id });
-                                          setDeleteDialogOpen(true);
-                                        }}
+                                        onClick={() => handleDeleteRequest({ type: 'block', id: block.id })}
                                         className="text-destructive"
                                       >
                                         <Trash2 className="h-4 w-4 mr-2" />
@@ -1056,10 +1127,7 @@ export default function BinaCoreApp() {
                                               {t.common.edit}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                              onClick={() => {
-                                                setDeletingItem({ type: 'floor', id: floor.id });
-                                                setDeleteDialogOpen(true);
-                                              }}
+                                              onClick={() => handleDeleteRequest({ type: 'floor', id: floor.id })}
                                               className="text-destructive"
                                             >
                                               <Trash2 className="h-4 w-4 mr-2" />
@@ -1152,10 +1220,7 @@ export default function BinaCoreApp() {
                                 {t.common.share}
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => {
-                                  setDeletingItem({ type: 'report', id: report.id });
-                                  setDeleteDialogOpen(true);
-                                }}
+                                onClick={() => handleDeleteRequest({ type: 'report', id: report.id })}
                                 className="text-destructive"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
@@ -1285,10 +1350,7 @@ export default function BinaCoreApp() {
                                 {t.common.share}
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => {
-                                  setDeletingItem({ type: 'problem', id: problem.id });
-                                  setDeleteDialogOpen(true);
-                                }}
+                                onClick={() => handleDeleteRequest({ type: 'problem', id: problem.id })}
                                 className="text-destructive"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
@@ -2083,6 +2145,55 @@ export default function BinaCoreApp() {
               {t.common.cancel}
             </Button>
             <Button onClick={handleSaveFloor}>{t.common.save}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Confirmation Dialog for Deletion */}
+      <Dialog open={passwordConfirmDialogOpen} onOpenChange={setPasswordConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {deletingItem?.type === 'project' && t.common.passwordConfirm.projectDelete}
+              {deletingItem?.type === 'report' && t.common.passwordConfirm.reportDelete}
+              {deletingItem?.type === 'problem' && t.common.passwordConfirm.problemDelete}
+            </DialogTitle>
+            <DialogDescription>
+              {t.common.passwordConfirm.description}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="deletePassword">{t.common.passwordConfirm.enterPassword}</Label>
+              <Input
+                id="deletePassword"
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder={t.common.passwordConfirm.enterPassword}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && deletePassword) {
+                    handleDeleteItem();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setPasswordConfirmDialogOpen(false);
+              setDeletePassword('');
+              setDeletingItem(null);
+            }}>
+              {t.common.cancel}
+            </Button>
+            <Button
+              onClick={handleDeleteItem}
+              disabled={!deletePassword}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {t.common.delete}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -162,6 +162,16 @@ export type Translations = {
     success: string;
     error: string;
     actions: string;
+    passwordConfirm: {
+      title: string;
+      description: string;
+      enterPassword: string;
+      passwordRequired: string;
+      wrongPassword: string;
+      projectDelete: string;
+      reportDelete: string;
+      problemDelete: string;
+    };
   };
   footer: {
     madeBy: string;
@@ -359,6 +369,16 @@ export const translations: Record<Language, Translations> = {
       success: 'Opération réussie',
       error: 'Une erreur s\'est produite',
       actions: 'Actions',
+      passwordConfirm: {
+        title: 'Confirmation du mot de passe',
+        description: 'Veuillez entrer le mot de passe du projet pour confirmer la suppression.',
+        enterPassword: 'Entrez le mot de passe',
+        passwordRequired: 'Le mot de passe est requis',
+        wrongPassword: 'Mot de passe incorrect',
+        projectDelete: 'Supprimer le projet',
+        reportDelete: 'Supprimer le rapport',
+        problemDelete: 'Supprimer le problème',
+      },
     },
     footer: {
       madeBy: 'Réalisé par',
@@ -554,6 +574,16 @@ export const translations: Record<Language, Translations> = {
       success: 'Operation successful',
       error: 'An error occurred',
       actions: 'Actions',
+      passwordConfirm: {
+        title: 'Password Confirmation',
+        description: 'Please enter the project password to confirm deletion.',
+        enterPassword: 'Enter password',
+        passwordRequired: 'Password is required',
+        wrongPassword: 'Wrong password',
+        projectDelete: 'Delete Project',
+        reportDelete: 'Delete Report',
+        problemDelete: 'Delete Problem',
+      },
     },
     footer: {
       madeBy: 'Made by',
