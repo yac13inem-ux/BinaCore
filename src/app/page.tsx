@@ -367,7 +367,7 @@ export default function BinaCoreApp() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div className="min-h-screen flex flex-col bg-background text-foreground pb-16">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
@@ -375,49 +375,6 @@ export default function BinaCoreApp() {
             <Building2 className="h-6 w-6" />
             <h1 className="text-xl font-bold">BinaCore</h1>
           </div>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <Button
-              variant={activeTab === 'dashboard' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('dashboard')}
-            >
-              <LayoutDashboard className="h-4 w-4 mr-2" />
-              {t.navigation.dashboard}
-            </Button>
-            <Button
-              variant={activeTab === 'projects' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('projects')}
-            >
-              <Building2 className="h-4 w-4 mr-2" />
-              {t.navigation.projects}
-            </Button>
-            <Button
-              variant={activeTab === 'reports' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('reports')}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              {t.navigation.reports}
-            </Button>
-            <Button
-              variant={activeTab === 'problems' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('problems')}
-            >
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              {t.navigation.problems}
-            </Button>
-            <Button
-              variant={activeTab === 'settings' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('settings')}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              {t.navigation.settings}
-            </Button>
-          </nav>
 
           <div className="flex items-center gap-2">
             <Button
@@ -443,22 +400,6 @@ export default function BinaCoreApp() {
       {/* Main Content */}
       <main className="flex-1 container py-6">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
-          {/* Mobile Navigation */}
-          <div className="md:hidden mb-6">
-            <Select value={activeTab} onValueChange={(v) => setActiveTab(v as TabValue)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="dashboard">{t.navigation.dashboard}</SelectItem>
-                <SelectItem value="projects">{t.navigation.projects}</SelectItem>
-                <SelectItem value="reports">{t.navigation.reports}</SelectItem>
-                <SelectItem value="problems">{t.navigation.problems}</SelectItem>
-                <SelectItem value="settings">{t.navigation.settings}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
             <div className="flex items-center justify-between">
@@ -920,14 +861,65 @@ export default function BinaCoreApp() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-4 mt-auto">
+      <footer className="border-t py-3">
         <div className="container flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {t.footer.madeBy} Dz Build {t.footer.copyright}
           </p>
-          <p className="text-sm text-muted-foreground">BinaCore v1.0.0</p>
+          <p className="text-xs text-muted-foreground">BinaCore v1.0.0</p>
         </div>
       </footer>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex items-center justify-around py-2">
+          <Button
+            variant={activeTab === 'dashboard' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setActiveTab('dashboard')}
+            className="flex-col h-14 w-14"
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            <span className="text-[10px] mt-1">{t.navigation.dashboard}</span>
+          </Button>
+          <Button
+            variant={activeTab === 'projects' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setActiveTab('projects')}
+            className="flex-col h-14 w-14"
+          >
+            <Building2 className="h-5 w-5" />
+            <span className="text-[10px] mt-1">{t.navigation.projects}</span>
+          </Button>
+          <Button
+            variant={activeTab === 'reports' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setActiveTab('reports')}
+            className="flex-col h-14 w-14"
+          >
+            <FileText className="h-5 w-5" />
+            <span className="text-[10px] mt-1">{t.navigation.reports}</span>
+          </Button>
+          <Button
+            variant={activeTab === 'problems' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setActiveTab('problems')}
+            className="flex-col h-14 w-14"
+          >
+            <AlertTriangle className="h-5 w-5" />
+            <span className="text-[10px] mt-1">{t.navigation.problems}</span>
+          </Button>
+          <Button
+            variant={activeTab === 'settings' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setActiveTab('settings')}
+            className="flex-col h-14 w-14"
+          >
+            <Settings className="h-5 w-5" />
+            <span className="text-[10px] mt-1">{t.navigation.settings}</span>
+          </Button>
+        </div>
+      </nav>
 
       {/* Project Dialog */}
       <Dialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen}>
