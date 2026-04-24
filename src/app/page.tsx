@@ -130,6 +130,24 @@ export default function BinaCoreApp() {
   const [floors, setFloors] = useState<Floor[]>([]);
   const [reports, setReports] = useState<Report[]>([]);
   const [problems, setProblems] = useState<Problem[]>([]);
+  const [projectProgress, setProjectProgress] = useState<Map<string, number>>(new Map());
+
+  // Update project progress when projects, blocks, floors, reports, or problems change
+  useEffect(() => {
+    const calculateProgress = async () => {
+      const progressMap = new Map<string, number>();
+      for (const project of projects) {
+        try {
+          const progress = await getProjectProgress(project);
+          progressMap.set(project.id, progress);
+        } catch {
+          progressMap.set(project.id, 0);
+        }
+      }
+      setProjectProgress(progressMap);
+    };
+    calculateProgress();
+  }, [projects, blocks, floors, reports, problems]);
 
   // Dialog states
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
@@ -242,12 +260,19 @@ export default function BinaCoreApp() {
     notes: '',
   });
 
-  const loadData = () => {
-    setProjects(getProjects());
-    setBlocks(getBlocks());
-    setFloors(getFloors());
-    setReports(getReports());
-    setProblems(getProblems());
+  const loadData = async () => {
+    const [projectsData, blocksData, floorsData, reportsData, problemsData] = await Promise.all([
+      getProjects(),
+      getBlocks(),
+      getFloors(),
+      getReports(),
+      getProblems(),
+    ]);
+    setProjects(projectsData);
+    setBlocks(blocksData);
+    setFloors(floorsData);
+    setReports(reportsData);
+    setProblems(problemsData);
   };
 
   useEffect(() => {
@@ -888,7 +913,7 @@ export default function BinaCoreApp() {
               <>
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {projects.slice(0, 6).map((project) => {
-                    const progress = getProjectProgress(project);
+                    const progress = projectProgress.get(project.id) || 0;
                     return (
                       <Card key={project.id} className="hover:shadow-lg transition-shadow">
                         <CardHeader>
@@ -961,7 +986,7 @@ export default function BinaCoreApp() {
                 ) : (
                   <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {projects.map((project) => {
-                      const progress = getProjectProgress(project);
+                      const progress = projectProgress.get(project.id) || 0;
                       return (
                         <Card key={project.id} className="hover:shadow-lg transition-shadow">
                           <CardHeader>
