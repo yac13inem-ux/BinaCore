@@ -378,6 +378,10 @@ export async function importData(data: BinaCoreData): Promise<{ success: boolean
 }
 
 export async function downloadDataAsJson(): Promise<void> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    throw new Error('downloadDataAsJson can only be called in the browser');
+  }
+
   const data = await exportData();
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
