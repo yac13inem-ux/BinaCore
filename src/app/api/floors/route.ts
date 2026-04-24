@@ -5,10 +5,8 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 export async function GET(request: NextRequest) {
   try {
     if (!isSupabaseConfigured()) {
-      return NextResponse.json(
-        { error: 'Supabase not configured' },
-        { status: 503 }
-      );
+      console.warn('Supabase not configured in GET /api/floors');
+      return NextResponse.json([], { status: 200 });
     }
 
     const { data, error } = await supabase
@@ -17,15 +15,14 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('Supabase error in GET /api/floors:', error);
+      return NextResponse.json([], { status: 200 });
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(data || []);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Error in GET /api/floors:', error);
+    return NextResponse.json([], { status: 200 });
   }
 }
 
@@ -61,11 +58,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      console.error('Supabase error in POST /api/floors:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
+    console.error('Error in POST /api/floors:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

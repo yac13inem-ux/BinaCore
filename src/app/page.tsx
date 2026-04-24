@@ -724,7 +724,7 @@ export default function BinaCoreApp() {
 
   const addLogement = (inspectionType: 'ces' | 'cet') => {
     const newLogement: Logement = {
-      id: crypto.randomUUID(),
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: '',
       notes: '',
     };

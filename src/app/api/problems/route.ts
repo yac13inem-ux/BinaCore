@@ -5,10 +5,8 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 export async function GET(request: NextRequest) {
   try {
     if (!isSupabaseConfigured()) {
-      return NextResponse.json(
-        { error: 'Supabase not configured' },
-        { status: 503 }
-      );
+      console.warn('Supabase not configured in GET /api/problems');
+      return NextResponse.json([], { status: 200 });
     }
 
     const { data, error } = await supabase
@@ -17,15 +15,14 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('Supabase error in GET /api/problems:', error);
+      return NextResponse.json([], { status: 200 });
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(data || []);
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Error in GET /api/problems:', error);
+    return NextResponse.json([], { status: 200 });
   }
 }
 
@@ -46,7 +43,7 @@ export async function POST(request: NextRequest) {
       .insert([{
         project_id: body.projectId,
         title: body.title,
-        description: body.description || null,
+        description: body.description,
         date: body.date,
         status: body.status || 'open',
       }])
@@ -54,11 +51,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      console.error('Supabase error in POST /api/problems:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
+    console.error('Error in POST /api/problems:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

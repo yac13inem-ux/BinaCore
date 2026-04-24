@@ -352,21 +352,29 @@ export async function exportData(): Promise<BinaCoreData> {
   };
 }
 
-export async function importData(data: BinaCoreData): Promise<void> {
-  if (shouldUseAPI()) {
-    for (const project of data.projects) {
-      await apiStorage.createProject({
-        name: project.name,
-        description: project.description,
-        password: project.password,
-        buildingType: project.buildingType,
-        numberOfFloors: project.numberOfFloors,
-      });
+export async function importData(data: BinaCoreData): Promise<{ success: boolean; imported: number; message?: string }> {
+  try {
+    if (shouldUseAPI()) {
+      let imported = 0;
+      for (const project of data.projects) {
+        await apiStorage.createProject({
+          name: project.name,
+          description: project.description,
+          password: project.password,
+          buildingType: project.buildingType,
+          numberOfFloors: project.numberOfFloors,
+        });
+        imported++;
+      }
+      // Note: Blocks, floors, reports, and problems are not imported in API mode
+      // as they require the new project IDs from the API
+      return { success: true, imported };
     }
-    // Note: Blocks, floors, reports, and problems are not imported in API mode
-    // as they require the new project IDs from the API
+    // For localStorage mode, we could implement full import but for now just import projects
+    return { success: false, imported: 0, message: 'Import not supported in localStorage mode' };
+  } catch (error) {
+    return { success: false, imported: 0, message: error instanceof Error ? error.message : 'Import failed' };
   }
-  // localStorage mode import is not supported
 }
 
 export async function downloadDataAsJson(): Promise<void> {
