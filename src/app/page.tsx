@@ -206,7 +206,9 @@ export default function BinaCoreApp() {
     floorName: string;
     ces: CES;
     cet: CET;
+    coulageDate: string;
     coulageTime: string;
+    verificationDate: string;
     verificationTime: string;
     status: 'notStarted' | 'inProgress' | 'completed';
     notes: string;
@@ -217,7 +219,9 @@ export default function BinaCoreApp() {
     floorName: '',
     ces: { inspected: false, date: '', notes: '' } as CES,
     cet: { inspected: false, date: '', notes: '' } as CET,
+    coulageDate: '',
     coulageTime: '',
+    verificationDate: '',
     verificationTime: '',
     status: 'notStarted',
     notes: '',
@@ -372,7 +376,9 @@ export default function BinaCoreApp() {
       floorName: '',
       ces: { inspected: false, date: '', notes: '' },
       cet: { inspected: false, date: '', notes: '' },
+      coulageDate: '',
       coulageTime: '',
+      verificationDate: '',
       verificationTime: '',
       status: 'notStarted',
       notes: '',
@@ -390,7 +396,9 @@ export default function BinaCoreApp() {
       floorName: floor.floorName,
       ces: floor.ces || { inspected: false, date: '', notes: '' },
       cet: floor.cet || { inspected: false, date: '', notes: '' },
+      coulageDate: floor.coulageDate || '',
       coulageTime: floor.coulageTime || '',
+      verificationDate: floor.verificationDate || '',
       verificationTime: floor.verificationTime || '',
       status: floor.status,
       notes: floor.notes || '',
@@ -556,7 +564,9 @@ export default function BinaCoreApp() {
         date: floorForm.cet.date || null,
         notes: floorForm.cet.notes,
       } : null,
+      coulageDate: floorForm.coulageDate || null,
       coulageTime: floorForm.coulageTime || null,
+      verificationDate: floorForm.verificationDate || null,
       verificationTime: floorForm.verificationTime || null,
       status: floorForm.status,
       notes: floorForm.notes || '',
@@ -586,7 +596,9 @@ export default function BinaCoreApp() {
       floorName: '',
       ces: { inspected: false, date: '', notes: '' },
       cet: { inspected: false, date: '', notes: '' },
+      coulageDate: '',
       coulageTime: '',
+      verificationDate: '',
       verificationTime: '',
       status: 'notStarted',
       notes: '',
@@ -888,7 +900,7 @@ export default function BinaCoreApp() {
                               <CardContent className="space-y-3">
                                 <div className="flex items-center justify-between">
                                   <h4 className="font-medium">
-                                    {language === 'fr' ? 'Étages (طوابق)' : 'Floors (طوابق)'}
+                                    {language === 'fr' ? 'Étages' : 'Floors'}
                                   </h4>
                                   <Button
                                     size="sm"
@@ -929,14 +941,18 @@ export default function BinaCoreApp() {
                                                 {t.floors.statuses[floor.status]}
                                               </Badge>
                                             </span>
-                                            {floor.coulageTime && (
+                                            {(floor.coulageDate || floor.coulageTime) && (
                                               <span>
-                                                {t.floors.times.coulage}: {floor.coulageTime}
+                                                {language === 'fr' ? 'Coulage' : 'Coulage'}: 
+                                                {floor.coulageDate && formatDate(floor.coulageDate, language)}
+                                                {floor.coulageTime && ` ${floor.coulageTime}`}
                                               </span>
                                             )}
-                                            {floor.verificationTime && (
+                                            {(floor.verificationDate || floor.verificationTime) && (
                                               <span>
-                                                {t.floors.times.verification}: {floor.verificationTime}
+                                                {language === 'fr' ? 'Vérification' : 'Verification'}: 
+                                                {floor.verificationDate && formatDate(floor.verificationDate, language)}
+                                                {floor.verificationTime && ` ${floor.verificationTime}`}
                                               </span>
                                             )}
                                           </div>
@@ -1659,7 +1675,7 @@ export default function BinaCoreApp() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="floorBlock">{language === 'fr' ? 'Bloc (بلوك) *' : 'Block (بلوك) *'}</Label>
+                  <Label htmlFor="floorBlock">{language === 'fr' ? 'Bloc *' : 'Block *'}</Label>
                   <Select
                     value={floorForm.blockId}
                     onValueChange={(value) => setFloorForm({ ...floorForm, blockId: value })}
@@ -1734,7 +1750,16 @@ export default function BinaCoreApp() {
               <h3 className="font-semibold mb-4">{t.floors.times.title}</h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="coulageTime">{t.floors.times.coulage}</Label>
+                  <Label htmlFor="coulageDate">{t.floors.times.coulageDate}</Label>
+                  <Input
+                    id="coulageDate"
+                    type="date"
+                    value={floorForm.coulageDate}
+                    onChange={(e) => setFloorForm({ ...floorForm, coulageDate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="coulageTime">{t.floors.times.coulageTime}</Label>
                   <Input
                     id="coulageTime"
                     type="time"
@@ -1743,7 +1768,16 @@ export default function BinaCoreApp() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="verificationTime">{t.floors.times.verification}</Label>
+                  <Label htmlFor="verificationDate">{t.floors.times.verificationDate}</Label>
+                  <Input
+                    id="verificationDate"
+                    type="date"
+                    value={floorForm.verificationDate}
+                    onChange={(e) => setFloorForm({ ...floorForm, verificationDate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="verificationTime">{t.floors.times.verificationTime}</Label>
                   <Input
                     id="verificationTime"
                     type="time"

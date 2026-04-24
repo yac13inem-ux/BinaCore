@@ -67,8 +67,10 @@ export type Translations = {
     };
     times: {
       title: string;
-      coulage: string;
-      verification: string;
+      coulageDate: string;
+      coulageTime: string;
+      verificationDate: string;
+      verificationTime: string;
     };
   };
   reports: {
@@ -227,9 +229,11 @@ export const translations: Record<Language, Translations> = {
         cet: 'CET',
       },
       times: {
-        title: 'Horaires',
-        coulage: 'Heure de coulage',
-        verification: 'Heure de vérification',
+        title: 'Dates et Horaires',
+        coulageDate: 'Date de coulage',
+        coulageTime: 'Heure de coulage',
+        verificationDate: 'Date de vérification',
+        verificationTime: 'Heure de vérification',
       },
     },
     reports: {
@@ -386,9 +390,11 @@ export const translations: Record<Language, Translations> = {
         cet: 'CET',
       },
       times: {
-        title: 'Times',
-        coulage: 'Coulage Time',
-        verification: 'Verification Time',
+        title: 'Dates and Times',
+        coulageDate: 'Coulage Date',
+        coulageTime: 'Coulage Time',
+        verificationDate: 'Verification Date',
+        verificationTime: 'Verification Time',
       },
     },
     reports: {

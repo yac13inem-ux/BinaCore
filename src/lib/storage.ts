@@ -27,7 +27,9 @@ export interface Floor {
   floorName: string;
   ces?: CES | null;
   cet?: CET | null;
+  coulageDate?: string | null;
   coulageTime?: string | null;
+  verificationDate?: string | null;
   verificationTime?: string | null;
   notes?: string;
   status: 'notStarted' | 'inProgress' | 'completed';
