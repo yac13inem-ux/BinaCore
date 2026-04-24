@@ -64,6 +64,11 @@ export type Translations = {
       title: string;
       ces: string;
       cet: string;
+      logementType: string;
+      logementTypes: {
+        f3: string;
+        f4: string;
+      };
     };
     times: {
       title: string;
@@ -159,6 +164,11 @@ export type Translations = {
     ces: string;
     cet: string;
     tracking: string;
+    logementType: string;
+    logementTypes: {
+      f3: string;
+      f4: string;
+    };
   };
 };
 
@@ -227,6 +237,11 @@ export const translations: Record<Language, Translations> = {
         title: 'Suivi CES/CET',
         ces: 'CES',
         cet: 'CET',
+        logementType: 'Type de logement',
+        logementTypes: {
+          f3: 'F3',
+          f4: 'F4',
+        },
       },
       times: {
         title: 'Dates et Horaires',
@@ -322,7 +337,12 @@ export const translations: Record<Language, Translations> = {
       ces: 'CES',
       cet: 'CET',
       tracking: 'Suivi',
-    },
+      logementType: 'Type de logement',
+      logementTypes: {
+        f3: 'F3',
+        f4: 'F4',
+      },
+  },
   },
   en: {
     dashboard: {
@@ -388,6 +408,11 @@ export const translations: Record<Language, Translations> = {
         title: 'CES/CET Tracking',
         ces: 'CES',
         cet: 'CET',
+        logementType: 'Housing Type',
+        logementTypes: {
+          f3: 'F3',
+          f4: 'F4',
+        },
       },
       times: {
         title: 'Dates and Times',
@@ -483,6 +508,11 @@ export const translations: Record<Language, Translations> = {
       ces: 'CES',
       cet: 'CET',
       tracking: 'Tracking',
-    },
+      logementType: 'Housing Type',
+      logementTypes: {
+        f3: 'F3',
+        f4: 'F4',
+      },
+  },
   },
 };

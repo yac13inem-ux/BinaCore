@@ -41,12 +41,14 @@ export interface CES {
   inspected: boolean;
   date: string | null;
   notes?: string;
+  logementType?: string | null;
 }
 
 export interface CET {
   inspected: boolean;
   date: string | null;
   notes?: string;
+  logementType?: string | null;
 }
 
 export interface Report {

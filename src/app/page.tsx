@@ -374,8 +374,8 @@ export default function BinaCoreApp() {
       blockId: blockId,
       floorNumber: '',
       floorName: '',
-      ces: { inspected: false, date: '', notes: '' },
-      cet: { inspected: false, date: '', notes: '' },
+      ces: { inspected: false, date: '', notes: '', logementType: '' },
+      cet: { inspected: false, date: '', notes: '', logementType: '' },
       coulageDate: '',
       coulageTime: '',
       verificationDate: '',
@@ -394,8 +394,8 @@ export default function BinaCoreApp() {
       blockId: floor.blockId,
       floorNumber: floor.floorNumber.toString(),
       floorName: floor.floorName,
-      ces: floor.ces || { inspected: false, date: '', notes: '' },
-      cet: floor.cet || { inspected: false, date: '', notes: '' },
+      ces: floor.ces || { inspected: false, date: '', notes: '', logementType: '' },
+      cet: floor.cet || { inspected: false, date: '', notes: '', logementType: '' },
       coulageDate: floor.coulageDate || '',
       coulageTime: floor.coulageTime || '',
       verificationDate: floor.verificationDate || '',
@@ -558,11 +558,13 @@ export default function BinaCoreApp() {
         inspected: true,
         date: floorForm.ces.date || null,
         notes: floorForm.ces.notes,
+        logementType: floorForm.ces.logementType || null,
       } : null,
       cet: floorForm.cet.inspected ? {
         inspected: true,
         date: floorForm.cet.date || null,
         notes: floorForm.cet.notes,
+        logementType: floorForm.cet.logementType || null,
       } : null,
       coulageDate: floorForm.coulageDate || null,
       coulageTime: floorForm.coulageTime || null,
@@ -594,8 +596,8 @@ export default function BinaCoreApp() {
       blockId: '',
       floorNumber: '',
       floorName: '',
-      ces: { inspected: false, date: '', notes: '' },
-      cet: { inspected: false, date: '', notes: '' },
+      ces: { inspected: false, date: '', notes: '', logementType: '' },
+      cet: { inspected: false, date: '', notes: '', logementType: '' },
       coulageDate: '',
       coulageTime: '',
       verificationDate: '',
@@ -953,6 +955,16 @@ export default function BinaCoreApp() {
                                                 {language === 'fr' ? 'Vérification' : 'Verification'}: 
                                                 {floor.verificationDate && formatDate(floor.verificationDate, language)}
                                                 {floor.verificationTime && ` ${floor.verificationTime}`}
+                                              </span>
+                                            )}
+                                            {floor.ces?.logementType && (
+                                              <span>
+                                                CES: {language === 'fr' ? 'Type' : 'Type'} {floor.ces.logementType === 'f3' ? t.floors.cesCet.logementTypes.f3 : t.floors.cesCet.logementTypes.f4}
+                                              </span>
+                                            )}
+                                            {floor.cet?.logementType && (
+                                              <span>
+                                                CET: {language === 'fr' ? 'Type' : 'Type'} {floor.cet.logementType === 'f3' ? t.floors.cesCet.logementTypes.f3 : t.floors.cesCet.logementTypes.f4}
                                               </span>
                                             )}
                                           </div>
@@ -1811,6 +1823,21 @@ export default function BinaCoreApp() {
                           value={floorForm.ces.date || ''}
                           onChange={(e) => setFloorForm({ ...floorForm, ces: { ...floorForm.ces, date: e.target.value } })}
                         />
+                        <div className="space-y-2">
+                          <Label htmlFor="cesLogementType">{t.floors.cesCet.logementType}</Label>
+                          <Select
+                            value={floorForm.ces.logementType || ''}
+                            onValueChange={(value) => setFloorForm({ ...floorForm, ces: { ...floorForm.ces, logementType: value } })}
+                          >
+                            <SelectTrigger id="cesLogementType">
+                              <SelectValue placeholder={language === 'fr' ? 'Sélectionner le type' : 'Select type'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="f3">{t.floors.cesCet.logementTypes.f3}</SelectItem>
+                              <SelectItem value="f4">{t.floors.cesCet.logementTypes.f4}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <Textarea
                           value={floorForm.ces.notes || ''}
                           onChange={(e) => setFloorForm({ ...floorForm, ces: { ...floorForm.ces, notes: e.target.value } })}
@@ -1840,6 +1867,21 @@ export default function BinaCoreApp() {
                           value={floorForm.cet.date || ''}
                           onChange={(e) => setFloorForm({ ...floorForm, cet: { ...floorForm.cet, date: e.target.value } })}
                         />
+                        <div className="space-y-2">
+                          <Label htmlFor="cetLogementType">{t.floors.cesCet.logementType}</Label>
+                          <Select
+                            value={floorForm.cet.logementType || ''}
+                            onValueChange={(value) => setFloorForm({ ...floorForm, cet: { ...floorForm.cet, logementType: value } })}
+                          >
+                            <SelectTrigger id="cetLogementType">
+                              <SelectValue placeholder={language === 'fr' ? 'Sélectionner le type' : 'Select type'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="f3">{t.floors.cesCet.logementTypes.f3}</SelectItem>
+                              <SelectItem value="f4">{t.floors.cesCet.logementTypes.f4}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <Textarea
                           value={floorForm.cet.notes || ''}
                           onChange={(e) => setFloorForm({ ...floorForm, cet: { ...floorForm.cet, notes: e.target.value } })}
