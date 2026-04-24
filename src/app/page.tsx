@@ -1627,88 +1627,99 @@ export default function BinaCoreApp() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="floorProject">{t.reports.linkProject} *</Label>
-                <Select
-                  value={floorForm.projectId}
-                  onValueChange={(value) => {
-                    setFloorForm({ ...floorForm, projectId: value, blockId: '' });
-                  }}
-                  disabled={!!editingFloor}
-                >
-                  <SelectTrigger id="floorProject">
-                    <SelectValue placeholder={language === 'fr' ? 'Sélectionner un projet' : 'Select a project'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {/* Gros Œuvre Section */}
+            <div className="border-b pb-4">
+              <h3 className="font-semibold text-lg mb-4">{t.floors.grosOeuvre}</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="floorProject">{t.reports.linkProject} *</Label>
+                  <Select
+                    value={floorForm.projectId}
+                    onValueChange={(value) => {
+                      setFloorForm({ ...floorForm, projectId: value, blockId: '' });
+                    }}
+                    disabled={!!editingFloor}
+                  >
+                    <SelectTrigger id="floorProject">
+                      <SelectValue placeholder={language === 'fr' ? 'Sélectionner un projet' : 'Select a project'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="floorBlock">{language === 'fr' ? 'Bloc (بلوك) *' : 'Block (بلوك) *'}</Label>
+                  <Select
+                    value={floorForm.blockId}
+                    onValueChange={(value) => setFloorForm({ ...floorForm, blockId: value })}
+                    disabled={!floorForm.projectId}
+                  >
+                    <SelectTrigger id="floorBlock">
+                      <SelectValue placeholder={language === 'fr' ? 'Sélectionner un bloc' : 'Select a block'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {floorForm.projectId && getBlocksByProject(floorForm.projectId).map((block) => (
+                        <SelectItem key={block.id} value={block.id}>
+                          {language === 'fr' ? 'Bloc' : 'Block'} {block.blockNumber} - {block.blockName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="floorBlock">{language === 'fr' ? 'Bloc (بلوك) *' : 'Block (بلوك) *'}</Label>
-                <Select
-                  value={floorForm.blockId}
-                  onValueChange={(value) => setFloorForm({ ...floorForm, blockId: value })}
-                  disabled={!floorForm.projectId}
-                >
-                  <SelectTrigger id="floorBlock">
-                    <SelectValue placeholder={language === 'fr' ? 'Sélectionner un bloc' : 'Select a block'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {floorForm.projectId && getBlocksByProject(floorForm.projectId).map((block) => (
-                      <SelectItem key={block.id} value={block.id}>
-                        {language === 'fr' ? 'Bloc' : 'Block'} {block.blockNumber} - {block.blockName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="floorNumber">{t.floors.floorNumber} *</Label>
-                <Input
-                  id="floorNumber"
-                  type="number"
-                  min="1"
-                  value={floorForm.floorNumber}
-                  onChange={(e) => setFloorForm({ ...floorForm, floorNumber: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="floorName">{t.floors.floorName} *</Label>
-                <Input
-                  id="floorName"
-                  value={floorForm.floorName}
-                  onChange={(e) => setFloorForm({ ...floorForm, floorName: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="floorRebarDate">{t.floors.rebarInspectionDate}</Label>
-                <Input
-                  id="floorRebarDate"
-                  type="date"
-                  value={floorForm.rebarInspectionDate}
-                  onChange={(e) => setFloorForm({ ...floorForm, rebarInspectionDate: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="floorConcreteDate">{t.floors.concretePouringDate}</Label>
-                <Input
-                  id="floorConcreteDate"
-                  type="date"
-                  value={floorForm.concretePouringDate}
-                  onChange={(e) => setFloorForm({ ...floorForm, concretePouringDate: e.target.value })}
-                />
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="floorNumber">{t.floors.floorNumber} *</Label>
+                  <Input
+                    id="floorNumber"
+                    type="number"
+                    min="1"
+                    value={floorForm.floorNumber}
+                    onChange={(e) => setFloorForm({ ...floorForm, floorNumber: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="floorName">{t.floors.floorName} *</Label>
+                  <Input
+                    id="floorName"
+                    value={floorForm.floorName}
+                    onChange={(e) => setFloorForm({ ...floorForm, floorName: e.target.value })}
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Dates Section */}
+            <div className="border-b pb-4">
+              <h3 className="font-semibold text-lg mb-4">{language === 'fr' ? 'Dates' : 'Dates'}</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="floorRebarDate">{t.floors.rebarInspectionDate}</Label>
+                  <Input
+                    id="floorRebarDate"
+                    type="date"
+                    value={floorForm.rebarInspectionDate}
+                    onChange={(e) => setFloorForm({ ...floorForm, rebarInspectionDate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="floorConcreteDate">{t.floors.concretePouringDate}</Label>
+                  <Input
+                    id="floorConcreteDate"
+                    type="date"
+                    value={floorForm.concretePouringDate}
+                    onChange={(e) => setFloorForm({ ...floorForm, concretePouringDate: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Status & Notes */}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="floorStatus">{t.floors.status}</Label>
