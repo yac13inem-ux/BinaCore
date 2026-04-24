@@ -77,6 +77,14 @@ export type Translations = {
         t3: string;
         t4: string;
       };
+      logements: {
+        title: string;
+        add: string;
+        remove: string;
+        noLogements: string;
+        logementType: string;
+        notes: string;
+      };
     };
     times: {
       title: string;
@@ -266,6 +274,14 @@ export const translations: Record<Language, Translations> = {
           t3: 'T3',
           t4: 'T4',
         },
+        logements: {
+          title: 'Logements',
+          add: 'Ajouter un logement',
+          remove: 'Supprimer',
+          noLogements: 'Aucun logement ajouté',
+          logementType: 'Type de logement',
+          notes: 'Notes',
+        },
       },
       times: {
         title: 'Dates et Horaires',
@@ -374,8 +390,9 @@ export const translations: Record<Language, Translations> = {
         t3: 'T3',
         t4: 'T4',
       },
+    },
   },
-    en: {
+  en: {
     dashboard: {
       title: 'Dashboard',
       latestProgress: 'Latest Progress',
@@ -451,6 +468,14 @@ export const translations: Record<Language, Translations> = {
           t2: 'T2',
           t3: 'T3',
           t4: 'T4',
+        },
+        logements: {
+          title: 'Housing Units',
+          add: 'Add Housing Unit',
+          remove: 'Remove',
+          noLogements: 'No housing units added',
+          logementType: 'Housing Type',
+          notes: 'Notes',
         },
       },
       times: {
@@ -559,7 +584,7 @@ export const translations: Record<Language, Translations> = {
         t2: 'T2',
         t3: 'T3',
         t4: 'T4',
-        t4: 'T4',
       },
     },
-  };
+  },
+};

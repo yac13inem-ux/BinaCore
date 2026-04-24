@@ -37,18 +37,24 @@ export interface Floor {
   updatedAt: string;
 }
 
+export interface Logement {
+  id: string;
+  type: string; // studio, f1, f2, f3, f4, f5, t1, t2, t3, t4
+  notes?: string;
+}
+
 export interface CES {
   inspected: boolean;
   date: string | null;
   notes?: string;
-  logementType?: string | null;
+  logements?: Logement[];
 }
 
 export interface CET {
   inspected: boolean;
   date: string | null;
   notes?: string;
-  logementType?: string | null;
+  logements?: Logement[];
 }
 
 export interface Report {

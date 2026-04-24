@@ -102,6 +102,7 @@ import {
   shareToSystem,
   CES,
   CET,
+  Logement,
   getBlockName,
 } from '@/lib/storage';
 
@@ -374,8 +375,8 @@ export default function BinaCoreApp() {
       blockId: blockId,
       floorNumber: '',
       floorName: '',
-      ces: { inspected: false, date: '', notes: '', logementType: '' },
-      cet: { inspected: false, date: '', notes: '', logementType: '' },
+      ces: { inspected: false, date: '', notes: '', logements: [] },
+      cet: { inspected: false, date: '', notes: '', logements: [] },
       coulageDate: '',
       coulageTime: '',
       verificationDate: '',
@@ -394,8 +395,8 @@ export default function BinaCoreApp() {
       blockId: floor.blockId,
       floorNumber: floor.floorNumber.toString(),
       floorName: floor.floorName,
-      ces: floor.ces || { inspected: false, date: '', notes: '', logementType: '' },
-      cet: floor.cet || { inspected: false, date: '', notes: '', logementType: '' },
+      ces: floor.ces || { inspected: false, date: '', notes: '', logements: [] },
+      cet: floor.cet || { inspected: false, date: '', notes: '', logements: [] },
       coulageDate: floor.coulageDate || '',
       coulageTime: floor.coulageTime || '',
       verificationDate: floor.verificationDate || '',
@@ -558,13 +559,13 @@ export default function BinaCoreApp() {
         inspected: true,
         date: floorForm.ces.date || null,
         notes: floorForm.ces.notes,
-        logementType: floorForm.ces.logementType || null,
+        logements: floorForm.ces.logements || [],
       } : null,
       cet: floorForm.cet.inspected ? {
         inspected: true,
         date: floorForm.cet.date || null,
         notes: floorForm.cet.notes,
-        logementType: floorForm.cet.logementType || null,
+        logements: floorForm.cet.logements || [],
       } : null,
       coulageDate: floorForm.coulageDate || null,
       coulageTime: floorForm.coulageTime || null,
@@ -596,8 +597,8 @@ export default function BinaCoreApp() {
       blockId: '',
       floorNumber: '',
       floorName: '',
-      ces: { inspected: false, date: '', notes: '', logementType: '' },
-      cet: { inspected: false, date: '', notes: '', logementType: '' },
+      ces: { inspected: false, date: '', notes: '', logements: [] },
+      cet: { inspected: false, date: '', notes: '', logements: [] },
       coulageDate: '',
       coulageTime: '',
       verificationDate: '',
@@ -605,6 +606,80 @@ export default function BinaCoreApp() {
       status: 'notStarted',
       notes: '',
     });
+  };
+
+  const addLogement = (inspectionType: 'ces' | 'cet') => {
+    const newLogement: Logement = {
+      id: crypto.randomUUID(),
+      type: '',
+      notes: '',
+    };
+    if (inspectionType === 'ces') {
+      setFloorForm({
+        ...floorForm,
+        ces: {
+          ...floorForm.ces,
+          logements: [...(floorForm.ces.logements || []), newLogement],
+        },
+      });
+    } else {
+      setFloorForm({
+        ...floorForm,
+        cet: {
+          ...floorForm.cet,
+          logements: [...(floorForm.cet.logements || []), newLogement],
+        },
+      });
+    }
+  };
+
+  const removeLogement = (inspectionType: 'ces' | 'cet', logementId: string) => {
+    if (inspectionType === 'ces') {
+      setFloorForm({
+        ...floorForm,
+        ces: {
+          ...floorForm.ces,
+          logements: (floorForm.ces.logements || []).filter(l => l.id !== logementId),
+        },
+      });
+    } else {
+      setFloorForm({
+        ...floorForm,
+        cet: {
+          ...floorForm.cet,
+          logements: (floorForm.cet.logements || []).filter(l => l.id !== logementId),
+        },
+      });
+    }
+  };
+
+  const updateLogement = (
+    inspectionType: 'ces' | 'cet',
+    logementId: string,
+    field: 'type' | 'notes',
+    value: string
+  ) => {
+    if (inspectionType === 'ces') {
+      setFloorForm({
+        ...floorForm,
+        ces: {
+          ...floorForm.ces,
+          logements: (floorForm.ces.logements || []).map(l =>
+            l.id === logementId ? { ...l, [field]: value } : l
+          ),
+        },
+      });
+    } else {
+      setFloorForm({
+        ...floorForm,
+        cet: {
+          ...floorForm.cet,
+          logements: (floorForm.cet.logements || []).map(l =>
+            l.id === logementId ? { ...l, [field]: value } : l
+          ),
+        },
+      });
+    }
   };
 
   const getProjectName = (projectId: string) => {
@@ -957,14 +1032,14 @@ export default function BinaCoreApp() {
                                                 {floor.verificationTime && ` ${floor.verificationTime}`}
                                               </span>
                                             )}
-                                            {floor.ces?.logementType && (
+                                            {(floor.ces?.logements && floor.ces.logements.length > 0) && (
                                               <span>
-                                                CES: {language === 'fr' ? 'Type' : 'Type'} {t.floors.cesCet.logementTypes[floor.ces.logementType as keyof typeof t.floors.cesCet.logementTypes] || floor.ces.logementType}
+                                                CES: {floor.ces.logements.map(l => t.floors.cesCet.logementTypes[l.type as keyof typeof t.floors.cesCet.logementTypes] || l.type).join(', ')}
                                               </span>
                                             )}
-                                            {floor.cet?.logementType && (
+                                            {(floor.cet?.logements && floor.cet.logements.length > 0) && (
                                               <span>
-                                                CET: {language === 'fr' ? 'Type' : 'Type'} {t.floors.cesCet.logementTypes[floor.cet.logementType as keyof typeof t.floors.cesCet.logementTypes] || floor.cet.logementType}
+                                                CET: {floor.cet.logements.map(l => t.floors.cesCet.logementTypes[l.type as keyof typeof t.floors.cesCet.logementTypes] || l.type).join(', ')}
                                               </span>
                                             )}
                                           </div>
@@ -1804,6 +1879,7 @@ export default function BinaCoreApp() {
             <div className="border-t pt-4">
               <h3 className="font-semibold mb-4">{t.floors.cesCet.title}</h3>
               <div className="space-y-4">
+                {/* CES Section */}
                 <div className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-center gap-2 mb-2">
                     <input
@@ -1823,39 +1899,85 @@ export default function BinaCoreApp() {
                           value={floorForm.ces.date || ''}
                           onChange={(e) => setFloorForm({ ...floorForm, ces: { ...floorForm.ces, date: e.target.value } })}
                         />
-                        <div className="space-y-2">
-                          <Label htmlFor="cesLogementType">{t.floors.cesCet.logementType}</Label>
-                          <Select
-                            value={floorForm.ces.logementType || ''}
-                            onValueChange={(value) => setFloorForm({ ...floorForm, ces: { ...floorForm.ces, logementType: value } })}
+                      </div>
+                      <Textarea
+                        value={floorForm.ces.notes || ''}
+                        onChange={(e) => setFloorForm({ ...floorForm, ces: { ...floorForm.ces, notes: e.target.value } })}
+                        rows={2}
+                        placeholder={language === 'fr' ? 'Notes CES...' : 'CES notes...'}
+                      />
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{t.floors.cesCet.logements.title}</h4>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => addLogement('ces')}
                           >
-                            <SelectTrigger id="cesLogementType">
-                              <SelectValue placeholder={language === 'fr' ? 'Sélectionner le type' : 'Select type'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="studio">{t.floors.cesCet.logementTypes.studio}</SelectItem>
-                              <SelectItem value="f1">{t.floors.cesCet.logementTypes.f1}</SelectItem>
-                              <SelectItem value="f2">{t.floors.cesCet.logementTypes.f2}</SelectItem>
-                              <SelectItem value="f3">{t.floors.cesCet.logementTypes.f3}</SelectItem>
-                              <SelectItem value="f4">{t.floors.cesCet.logementTypes.f4}</SelectItem>
-                              <SelectItem value="f5">{t.floors.cesCet.logementTypes.f5}</SelectItem>
-                              <SelectItem value="t1">{t.floors.cesCet.logementTypes.t1}</SelectItem>
-                              <SelectItem value="t2">{t.floors.cesCet.logementTypes.t2}</SelectItem>
-                              <SelectItem value="t3">{t.floors.cesCet.logementTypes.t3}</SelectItem>
-                              <SelectItem value="t4">{t.floors.cesCet.logementTypes.t4}</SelectItem>
-                            </SelectContent>
-                          </Select>
+                            <Plus className="h-4 w-4 mr-1" />
+                            {t.floors.cesCet.logements.add}
+                          </Button>
                         </div>
-                        <Textarea
-                          value={floorForm.ces.notes || ''}
-                          onChange={(e) => setFloorForm({ ...floorForm, ces: { ...floorForm.ces, notes: e.target.value } })}
-                          rows={2}
-                          placeholder={language === 'fr' ? 'Notes CES...' : 'CES notes...'}
-                        />
+                        {(!floorForm.ces.logements || floorForm.ces.logements.length === 0) && (
+                          <p className="text-sm text-muted-foreground">{t.floors.cesCet.logements.noLogements}</p>
+                        )}
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {floorForm.ces.logements && floorForm.ces.logements.length > 0 && floorForm.ces.logements.map((logement, index) => (
+                            <div key={logement.id} className="border rounded-md p-3 space-y-2">
+                              <div className="flex items-start justify-between">
+                                <span className="text-sm font-medium">{language === 'fr' ? 'Logement' : 'Housing'} {index + 1}</span>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => removeLogement('ces', logement.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <Label htmlFor={`ces-logement-${logement.id}-type`} className="text-sm">{t.floors.cesCet.logements.logementType}</Label>
+                                  <Select
+                                    value={logement.type}
+                                    onValueChange={(value) => updateLogement('ces', logement.id, 'type', value)}
+                                  >
+                                    <SelectTrigger id={`ces-logement-${logement.id}-type`}>
+                                      <SelectValue placeholder={language === 'fr' ? 'Sélectionner le type' : 'Select type'} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="studio">{t.floors.cesCet.logementTypes.studio}</SelectItem>
+                                      <SelectItem value="f1">{t.floors.cesCet.logementTypes.f1}</SelectItem>
+                                      <SelectItem value="f2">{t.floors.cesCet.logementTypes.f2}</SelectItem>
+                                      <SelectItem value="f3">{t.floors.cesCet.logementTypes.f3}</SelectItem>
+                                      <SelectItem value="f4">{t.floors.cesCet.logementTypes.f4}</SelectItem>
+                                      <SelectItem value="f5">{t.floors.cesCet.logementTypes.f5}</SelectItem>
+                                      <SelectItem value="t1">{t.floors.cesCet.logementTypes.t1}</SelectItem>
+                                      <SelectItem value="t2">{t.floors.cesCet.logementTypes.t2}</SelectItem>
+                                      <SelectItem value="t3">{t.floors.cesCet.logementTypes.t3}</SelectItem>
+                                      <SelectItem value="t4">{t.floors.cesCet.logementTypes.t4}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label htmlFor={`ces-logement-${logement.id}-notes`} className="text-sm">{t.floors.cesCet.logements.notes}</Label>
+                                  <Input
+                                    id={`ces-logement-${logement.id}-notes`}
+                                    value={logement.notes || ''}
+                                    onChange={(e) => updateLogement('ces', logement.id, 'notes', e.target.value)}
+                                    placeholder={language === 'fr' ? 'Notes...' : 'Notes...'}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </>
                   )}
                 </div>
+                {/* CET Section */}
                 <div className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-center gap-2 mb-2">
                     <input
@@ -1875,35 +1997,80 @@ export default function BinaCoreApp() {
                           value={floorForm.cet.date || ''}
                           onChange={(e) => setFloorForm({ ...floorForm, cet: { ...floorForm.cet, date: e.target.value } })}
                         />
-                        <div className="space-y-2">
-                          <Label htmlFor="cetLogementType">{t.floors.cesCet.logementType}</Label>
-                          <Select
-                            value={floorForm.cet.logementType || ''}
-                            onValueChange={(value) => setFloorForm({ ...floorForm, cet: { ...floorForm.cet, logementType: value } })}
+                      </div>
+                      <Textarea
+                        value={floorForm.cet.notes || ''}
+                        onChange={(e) => setFloorForm({ ...floorForm, cet: { ...floorForm.cet, notes: e.target.value } })}
+                        rows={2}
+                        placeholder={language === 'fr' ? 'Notes CET...' : 'CET notes...'}
+                      />
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{t.floors.cesCet.logements.title}</h4>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => addLogement('cet')}
                           >
-                            <SelectTrigger id="cetLogementType">
-                              <SelectValue placeholder={language === 'fr' ? 'Sélectionner le type' : 'Select type'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="studio">{t.floors.cesCet.logementTypes.studio}</SelectItem>
-                              <SelectItem value="f1">{t.floors.cesCet.logementTypes.f1}</SelectItem>
-                              <SelectItem value="f2">{t.floors.cesCet.logementTypes.f2}</SelectItem>
-                              <SelectItem value="f3">{t.floors.cesCet.logementTypes.f3}</SelectItem>
-                              <SelectItem value="f4">{t.floors.cesCet.logementTypes.f4}</SelectItem>
-                              <SelectItem value="f5">{t.floors.cesCet.logementTypes.f5}</SelectItem>
-                              <SelectItem value="t1">{t.floors.cesCet.logementTypes.t1}</SelectItem>
-                              <SelectItem value="t2">{t.floors.cesCet.logementTypes.t2}</SelectItem>
-                              <SelectItem value="t3">{t.floors.cesCet.logementTypes.t3}</SelectItem>
-                              <SelectItem value="t4">{t.floors.cesCet.logementTypes.t4}</SelectItem>
-                            </SelectContent>
-                          </Select>
+                            <Plus className="h-4 w-4 mr-1" />
+                            {t.floors.cesCet.logements.add}
+                          </Button>
                         </div>
-                        <Textarea
-                          value={floorForm.cet.notes || ''}
-                          onChange={(e) => setFloorForm({ ...floorForm, cet: { ...floorForm.cet, notes: e.target.value } })}
-                          rows={2}
-                          placeholder={language === 'fr' ? 'Notes CET...' : 'CET notes...'}
-                        />
+                        {(!floorForm.cet.logements || floorForm.cet.logements.length === 0) && (
+                          <p className="text-sm text-muted-foreground">{t.floors.cesCet.logements.noLogements}</p>
+                        )}
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {floorForm.cet.logements && floorForm.cet.logements.length > 0 && floorForm.cet.logements.map((logement, index) => (
+                            <div key={logement.id} className="border rounded-md p-3 space-y-2">
+                              <div className="flex items-start justify-between">
+                                <span className="text-sm font-medium">{language === 'fr' ? 'Logement' : 'Housing'} {index + 1}</span>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => removeLogement('cet', logement.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <Label htmlFor={`cet-logement-${logement.id}-type`} className="text-sm">{t.floors.cesCet.logements.logementType}</Label>
+                                  <Select
+                                    value={logement.type}
+                                    onValueChange={(value) => updateLogement('cet', logement.id, 'type', value)}
+                                  >
+                                    <SelectTrigger id={`cet-logement-${logement.id}-type`}>
+                                      <SelectValue placeholder={language === 'fr' ? 'Sélectionner le type' : 'Select type'} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="studio">{t.floors.cesCet.logementTypes.studio}</SelectItem>
+                                      <SelectItem value="f1">{t.floors.cesCet.logementTypes.f1}</SelectItem>
+                                      <SelectItem value="f2">{t.floors.cesCet.logementTypes.f2}</SelectItem>
+                                      <SelectItem value="f3">{t.floors.cesCet.logementTypes.f3}</SelectItem>
+                                      <SelectItem value="f4">{t.floors.cesCet.logementTypes.f4}</SelectItem>
+                                      <SelectItem value="f5">{t.floors.cesCet.logementTypes.f5}</SelectItem>
+                                      <SelectItem value="t1">{t.floors.cesCet.logementTypes.t1}</SelectItem>
+                                      <SelectItem value="t2">{t.floors.cesCet.logementTypes.t2}</SelectItem>
+                                      <SelectItem value="t3">{t.floors.cesCet.logementTypes.t3}</SelectItem>
+                                      <SelectItem value="t4">{t.floors.cesCet.logementTypes.t4}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label htmlFor={`cet-logement-${logement.id}-notes`} className="text-sm">{t.floors.cesCet.logements.notes}</Label>
+                                  <Input
+                                    id={`cet-logement-${logement.id}-notes`}
+                                    value={logement.notes || ''}
+                                    onChange={(e) => updateLogement('cet', logement.id, 'notes', e.target.value)}
+                                    placeholder={language === 'fr' ? 'Notes...' : 'Notes...'}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </>
                   )}
