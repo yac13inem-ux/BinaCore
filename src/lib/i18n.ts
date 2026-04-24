@@ -20,10 +20,6 @@ export type Translations = {
     projectName: string;
     password: string;
     description: string;
-    buildingType: string;
-    numberOfFloors: string;
-    rebarInspectionDate: string;
-    concretePouringDate: string;
     confirmPassword: string;
     enterPassword: string;
     passwordRequired: string;
@@ -33,13 +29,6 @@ export type Translations = {
     save: string;
     projectDetails: string;
     noProjectsFound: string;
-    buildingTypeOptions: {
-      immeuble: string;
-      villa: string;
-      bureau: string;
-      commercial: string;
-      other: string;
-    };
     blocks: {
       title: string;
       addBlock: string;
@@ -189,10 +178,6 @@ export const translations: Record<Language, Translations> = {
       projectName: 'Nom du projet',
       password: 'Mot de passe',
       description: 'Description',
-      buildingType: 'Type de bâtiment',
-      numberOfFloors: 'Nombre d\'étages',
-      rebarInspectionDate: 'Date de vérification du ferraillage',
-      concretePouringDate: 'Date de coulage du béton',
       confirmPassword: 'Confirmer le mot de passe',
       enterPassword: 'Entrez le mot de passe',
       passwordRequired: 'Le mot de passe est requis',
@@ -202,13 +187,6 @@ export const translations: Record<Language, Translations> = {
       save: 'Enregistrer',
       projectDetails: 'Détails du projet',
       noProjectsFound: 'Aucun projet trouvé',
-      buildingTypeOptions: {
-        immeuble: 'Immeuble',
-        villa: 'Villa',
-        bureau: 'Bureau',
-        commercial: 'Commercial',
-        other: 'Autre',
-      },
       blocks: {
         title: 'Blocs',
         addBlock: 'Ajouter un bloc',
@@ -356,10 +334,6 @@ export const translations: Record<Language, Translations> = {
       projectName: 'Project Name',
       password: 'Password',
       description: 'Description',
-      buildingType: 'Building Type',
-      numberOfFloors: 'Number of Floors',
-      rebarInspectionDate: 'Rebar Inspection Date',
-      concretePouringDate: 'Concrete Pouring Date',
       confirmPassword: 'Confirm Password',
       enterPassword: 'Enter Password',
       passwordRequired: 'Password is required',
@@ -369,13 +343,6 @@ export const translations: Record<Language, Translations> = {
       save: 'Save',
       projectDetails: 'Project Details',
       noProjectsFound: 'No projects found',
-      buildingTypeOptions: {
-        immeuble: 'Building',
-        villa: 'Villa',
-        bureau: 'Office',
-        commercial: 'Commercial',
-        other: 'Other',
-      },
       blocks: {
         title: 'Blocks',
         addBlock: 'Add Block',

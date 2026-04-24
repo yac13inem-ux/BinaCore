@@ -153,14 +153,10 @@ export default function BinaCoreApp() {
     name: string;
     description: string;
     password: string;
-    buildingType: 'immeuble' | 'villa' | 'bureau' | 'commercial' | 'other';
-    numberOfFloors: string;
   }>({
     name: '',
     description: '',
     password: '',
-    buildingType: 'immeuble',
-    numberOfFloors: '',
   });
 
   // Block form
@@ -241,7 +237,7 @@ export default function BinaCoreApp() {
   }, []);
 
   const handleSaveProject = () => {
-    if (!projectForm.name || !projectForm.password || !projectForm.numberOfFloors) {
+    if (!projectForm.name || !projectForm.password) {
       toast({
         title: t.common.error,
         description: language === 'fr' ? 'Veuillez remplir tous les champs obligatoires' : 'Please fill in all required fields',
@@ -254,8 +250,8 @@ export default function BinaCoreApp() {
       name: projectForm.name,
       description: projectForm.description,
       password: projectForm.password,
-      buildingType: projectForm.buildingType,
-      numberOfFloors: parseInt(projectForm.numberOfFloors),
+      buildingType: 'immeuble',
+      numberOfFloors: 0,
     };
 
     if (editingProject) {
@@ -279,8 +275,6 @@ export default function BinaCoreApp() {
       name: '',
       description: '',
       password: '',
-      buildingType: 'immeuble',
-      numberOfFloors: '',
     });
   };
 
@@ -447,7 +441,7 @@ export default function BinaCoreApp() {
   };
 
   const handleShareProject = (project: Project) => {
-    const text = `${project.name}\n${t.projects.buildingType}: ${t.projects.buildingTypeOptions[project.buildingType]}\n${t.projects.numberOfFloors}: ${project.numberOfFloors}`;
+    const text = `${project.name}\n${t.projects.description}: ${project.description || ''}`;
     shareToWhatsApp(text);
   };
 
@@ -672,9 +666,6 @@ export default function BinaCoreApp() {
                             {progress}%
                           </Badge>
                         </div>
-                        <CardDescription>
-                          {t.projects.buildingTypeOptions[project.buildingType]} • {project.numberOfFloors} {language === 'fr' ? 'étages' : 'floors'}
-                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
@@ -752,8 +743,6 @@ export default function BinaCoreApp() {
                                     name: project.name,
                                     description: project.description || '',
                                     password: project.password,
-                                    buildingType: project.buildingType,
-                                    numberOfFloors: project.numberOfFloors.toString(),
                                   }); setProjectDialogOpen(true); }}>
                                     <Pencil className="h-4 w-4 mr-2" />
                                     {t.common.edit}
@@ -775,9 +764,6 @@ export default function BinaCoreApp() {
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
-                            <CardDescription>
-                              {t.projects.buildingTypeOptions[project.buildingType]}
-                            </CardDescription>
                           </CardHeader>
                           <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -819,7 +805,6 @@ export default function BinaCoreApp() {
                     </Button>
                     <div>
                       <h2 className="text-3xl font-bold">{selectedProjectForBlocks.name}</h2>
-                      <p className="text-muted-foreground">{t.projects.buildingTypeOptions[selectedProjectForBlocks.buildingType]}</p>
                     </div>
                   </div>
                   <Button onClick={() => handleAddBlock(selectedProjectForBlocks.id)}>
@@ -1371,36 +1356,6 @@ export default function BinaCoreApp() {
                 placeholder={language === 'fr' ? 'Décrivez votre projet...' : 'Describe your project...'}
                 rows={3}
               />
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="buildingType">{t.projects.buildingType}</Label>
-                <Select
-                  value={projectForm.buildingType}
-                  onValueChange={(value: any) => setProjectForm({ ...projectForm, buildingType: value })}
-                >
-                  <SelectTrigger id="buildingType">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="immeuble">{t.projects.buildingTypeOptions.immeuble}</SelectItem>
-                    <SelectItem value="villa">{t.projects.buildingTypeOptions.villa}</SelectItem>
-                    <SelectItem value="bureau">{t.projects.buildingTypeOptions.bureau}</SelectItem>
-                    <SelectItem value="commercial">{t.projects.buildingTypeOptions.commercial}</SelectItem>
-                    <SelectItem value="other">{t.projects.buildingTypeOptions.other}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="numberOfFloors">{t.projects.numberOfFloors} *</Label>
-                <Input
-                  id="numberOfFloors"
-                  type="number"
-                  min="0"
-                  value={projectForm.numberOfFloors}
-                  onChange={(e) => setProjectForm({ ...projectForm, numberOfFloors: e.target.value })}
-                />
-              </div>
             </div>
           </div>
           <DialogFooter>
