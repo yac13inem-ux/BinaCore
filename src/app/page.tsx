@@ -862,16 +862,6 @@ export default function BinaCoreApp() {
         </Tabs>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t py-3">
-        <div className="container flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">
-            {t.footer.madeBy} Dz Build {t.footer.copyright}
-          </p>
-          <p className="text-xs text-muted-foreground">BinaCore v1.0.0</p>
-        </div>
-      </footer>
-
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex items-center justify-around py-2">
