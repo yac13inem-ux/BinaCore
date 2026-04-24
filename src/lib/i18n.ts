@@ -65,6 +65,11 @@ export type Translations = {
       ces: string;
       cet: string;
     };
+    times: {
+      title: string;
+      coulage: string;
+      verification: string;
+    };
   };
   reports: {
     title: string;
@@ -221,6 +226,11 @@ export const translations: Record<Language, Translations> = {
         ces: 'CES',
         cet: 'CET',
       },
+      times: {
+        title: 'Horaires',
+        coulage: 'Heure de coulage',
+        verification: 'Heure de vérification',
+      },
     },
     reports: {
       title: 'Rapports',
@@ -374,6 +384,11 @@ export const translations: Record<Language, Translations> = {
         title: 'CES/CET Tracking',
         ces: 'CES',
         cet: 'CET',
+      },
+      times: {
+        title: 'Times',
+        coulage: 'Coulage Time',
+        verification: 'Verification Time',
       },
     },
     reports: {

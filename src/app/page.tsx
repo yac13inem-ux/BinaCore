@@ -206,6 +206,8 @@ export default function BinaCoreApp() {
     floorName: string;
     ces: CES;
     cet: CET;
+    coulageTime: string;
+    verificationTime: string;
     status: 'notStarted' | 'inProgress' | 'completed';
     notes: string;
   }>({
@@ -215,6 +217,8 @@ export default function BinaCoreApp() {
     floorName: '',
     ces: { inspected: false, date: '', notes: '' } as CES,
     cet: { inspected: false, date: '', notes: '' } as CET,
+    coulageTime: '',
+    verificationTime: '',
     status: 'notStarted',
     notes: '',
   });
@@ -368,6 +372,8 @@ export default function BinaCoreApp() {
       floorName: '',
       ces: { inspected: false, date: '', notes: '' },
       cet: { inspected: false, date: '', notes: '' },
+      coulageTime: '',
+      verificationTime: '',
       status: 'notStarted',
       notes: '',
     });
@@ -384,6 +390,8 @@ export default function BinaCoreApp() {
       floorName: floor.floorName,
       ces: floor.ces || { inspected: false, date: '', notes: '' },
       cet: floor.cet || { inspected: false, date: '', notes: '' },
+      coulageTime: floor.coulageTime || '',
+      verificationTime: floor.verificationTime || '',
       status: floor.status,
       notes: floor.notes || '',
     });
@@ -548,7 +556,10 @@ export default function BinaCoreApp() {
         date: floorForm.cet.date || null,
         notes: floorForm.cet.notes,
       } : null,
+      coulageTime: floorForm.coulageTime || null,
+      verificationTime: floorForm.verificationTime || null,
       status: floorForm.status,
+      notes: floorForm.notes || '',
     };
 
     if (editingFloor) {
@@ -575,6 +586,8 @@ export default function BinaCoreApp() {
       floorName: '',
       ces: { inspected: false, date: '', notes: '' },
       cet: { inspected: false, date: '', notes: '' },
+      coulageTime: '',
+      verificationTime: '',
       status: 'notStarted',
       notes: '',
     });
@@ -916,6 +929,16 @@ export default function BinaCoreApp() {
                                                 {t.floors.statuses[floor.status]}
                                               </Badge>
                                             </span>
+                                            {floor.coulageTime && (
+                                              <span>
+                                                {t.floors.times.coulage}: {floor.coulageTime}
+                                              </span>
+                                            )}
+                                            {floor.verificationTime && (
+                                              <span>
+                                                {t.floors.times.verification}: {floor.verificationTime}
+                                              </span>
+                                            )}
                                           </div>
                                         </div>
                                         <DropdownMenu>
@@ -1703,6 +1726,31 @@ export default function BinaCoreApp() {
                   onChange={(e) => setFloorForm({ ...floorForm, notes: e.target.value })}
                   rows={3}
                 />
+              </div>
+            </div>
+
+            {/* Times Section */}
+            <div className="border-t pt-4">
+              <h3 className="font-semibold mb-4">{t.floors.times.title}</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="coulageTime">{t.floors.times.coulage}</Label>
+                  <Input
+                    id="coulageTime"
+                    type="time"
+                    value={floorForm.coulageTime}
+                    onChange={(e) => setFloorForm({ ...floorForm, coulageTime: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="verificationTime">{t.floors.times.verification}</Label>
+                  <Input
+                    id="verificationTime"
+                    type="time"
+                    value={floorForm.verificationTime}
+                    onChange={(e) => setFloorForm({ ...floorForm, verificationTime: e.target.value })}
+                  />
+                </div>
               </div>
             </div>
             
