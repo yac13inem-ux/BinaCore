@@ -1,0 +1,311 @@
+// Project data types
+export interface Project {
+  id: string;
+  name: string;
+  password: string; // In production, this should be hashed
+  buildingType: 'immeuble' | 'villa' | 'bureau' | 'commercial' | 'other';
+  numberOfFloors: number;
+  rebarInspectionDate: string | null;
+  concretePouringDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  ces?: CES | null;
+  cet?: CET | null;
+}
+
+export interface CES {
+  inspected: boolean;
+  date: string | null;
+  notes?: string;
+}
+
+export interface CET {
+  inspected: boolean;
+  date: string | null;
+  notes?: string;
+}
+
+export interface Report {
+  id: string;
+  projectId: string;
+  type: 'pvVisite' | 'pvConstat' | 'rapport';
+  date: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Problem {
+  id: string;
+  projectId: string;
+  title: string;
+  description: string;
+  date: string;
+  status: 'open' | 'inProgress' | 'resolved';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Storage keys
+const PROJECTS_KEY = 'binacore_projects';
+const REPORTS_KEY = 'binacore_reports';
+const PROBLEMS_KEY = 'binacore_problems';
+
+// Generic storage utilities
+function getFromStorage<T>(key: string, defaultValue: T): T {
+  if (typeof window === 'undefined') return defaultValue;
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (error) {
+    console.error(`Error reading from localStorage (${key}):`, error);
+    return defaultValue;
+  }
+}
+
+function setToStorage<T>(key: string, value: T): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Error writing to localStorage (${key}):`, error);
+  }
+}
+
+// Projects
+export function getProjects(): Project[] {
+  return getFromStorage<Project[]>(PROJECTS_KEY, []);
+}
+
+export function getProjectById(id: string): Project | undefined {
+  const projects = getProjects();
+  return projects.find(p => p.id === id);
+}
+
+export function saveProject(project: Project): void {
+  const projects = getProjects();
+  const existingIndex = projects.findIndex(p => p.id === project.id);
+  
+  if (existingIndex >= 0) {
+    projects[existingIndex] = { ...project, updatedAt: new Date().toISOString() };
+  } else {
+    projects.push(project);
+  }
+  
+  setToStorage(PROJECTS_KEY, projects);
+}
+
+export function deleteProject(id: string): void {
+  const projects = getProjects().filter(p => p.id !== id);
+  setToStorage(PROJECTS_KEY, projects);
+  
+  // Also delete associated reports and problems
+  const reports = getReports().filter(r => r.projectId !== id);
+  setToStorage(REPORTS_KEY, reports);
+  
+  const problems = getProblems().filter(p => p.projectId !== id);
+  setToStorage(PROBLEMS_KEY, problems);
+}
+
+export function createProject(data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>): Project {
+  const project: Project = {
+    ...data,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  saveProject(project);
+  return project;
+}
+
+export function updateProject(id: string, data: Partial<Project>): Project | null {
+  const projects = getProjects();
+  const project = projects.find(p => p.id === id);
+  
+  if (project) {
+    const updated = { ...project, ...data, updatedAt: new Date().toISOString() };
+    saveProject(updated);
+    return updated;
+  }
+  
+  return null;
+}
+
+// Reports
+export function getReports(): Report[] {
+  return getFromStorage<Report[]>(REPORTS_KEY, []);
+}
+
+export function getReportsByProject(projectId: string): Report[] {
+  return getReports().filter(r => r.projectId === projectId);
+}
+
+export function getReportById(id: string): Report | undefined {
+  const reports = getReports();
+  return reports.find(r => r.id === id);
+}
+
+export function saveReport(report: Report): void {
+  const reports = getReports();
+  const existingIndex = reports.findIndex(r => r.id === report.id);
+  
+  if (existingIndex >= 0) {
+    reports[existingIndex] = { ...report, updatedAt: new Date().toISOString() };
+  } else {
+    reports.push(report);
+  }
+  
+  setToStorage(REPORTS_KEY, reports);
+}
+
+export function deleteReport(id: string): void {
+  const reports = getReports().filter(r => r.id !== id);
+  setToStorage(REPORTS_KEY, reports);
+}
+
+export function createReport(data: Omit<Report, 'id' | 'createdAt' | 'updatedAt'>): Report {
+  const report: Report = {
+    ...data,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  saveReport(report);
+  return report;
+}
+
+export function updateReport(id: string, data: Partial<Report>): Report | null {
+  const reports = getReports();
+  const report = reports.find(r => r.id === id);
+  
+  if (report) {
+    const updated = { ...report, ...data, updatedAt: new Date().toISOString() };
+    saveReport(updated);
+    return updated;
+  }
+  
+  return null;
+}
+
+// Problems
+export function getProblems(): Problem[] {
+  return getFromStorage<Problem[]>(PROBLEMS_KEY, []);
+}
+
+export function getProblemsByProject(projectId: string): Problem[] {
+  return getProblems().filter(p => p.projectId === projectId);
+}
+
+export function getProblemsByStatus(status: Problem['status']): Problem[] {
+  return getProblems().filter(p => p.status === status);
+}
+
+export function getProblemById(id: string): Problem | undefined {
+  const problems = getProblems();
+  return problems.find(p => p.id === id);
+}
+
+export function saveProblem(problem: Problem): void {
+  const problems = getProblems();
+  const existingIndex = problems.findIndex(p => p.id === problem.id);
+  
+  if (existingIndex >= 0) {
+    problems[existingIndex] = { ...problem, updatedAt: new Date().toISOString() };
+  } else {
+    problems.push(problem);
+  }
+  
+  setToStorage(PROBLEMS_KEY, problems);
+}
+
+export function deleteProblem(id: string): void {
+  const problems = getProblems().filter(p => p.id !== id);
+  setToStorage(PROBLEMS_KEY, problems);
+}
+
+export function createProblem(data: Omit<Problem, 'id' | 'createdAt' | 'updatedAt'>): Problem {
+  const problem: Problem = {
+    ...data,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  saveProblem(problem);
+  return problem;
+}
+
+export function updateProblem(id: string, data: Partial<Problem>): Problem | null {
+  const problems = getProblems();
+  const problem = problems.find(p => p.id === id);
+  
+  if (problem) {
+    const updated = { ...problem, ...data, updatedAt: new Date().toISOString() };
+    saveProblem(updated);
+    return updated;
+  }
+  
+  return null;
+}
+
+// Utility functions
+export function getProjectProgress(project: Project): number {
+  const reports = getReportsByProject(project.id);
+  const problems = getProblemsByProject(project.id);
+  
+  let completedTasks = 0;
+  let totalTasks = 0;
+  
+  // Check CES/CET
+  totalTasks += 2;
+  if (project.ces?.inspected) completedTasks++;
+  if (project.cet?.inspected) completedTasks++;
+  
+  // Check key dates
+  totalTasks += 2;
+  if (project.rebarInspectionDate) completedTasks++;
+  if (project.concretePouringDate) completedTasks++;
+  
+  // Check problems resolution
+  totalTasks += problems.length;
+  completedTasks += problems.filter(p => p.status === 'resolved').length;
+  
+  // Check reports
+  totalTasks += reports.length * 3; // Each report type is tracked
+  completedTasks += reports.length;
+  
+  return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+}
+
+export function formatDate(dateString: string | null, language: 'fr' | 'en'): string {
+  if (!dateString) return '-';
+  
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
+  
+  return date.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', options);
+}
+
+export function shareToWhatsApp(text: string): void {
+  const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+}
+
+export async function shareToSystem(text: string, title: string = 'Share'): Promise<void> {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title,
+        text,
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  } else {
+    // Fallback: copy to clipboard
+    await navigator.clipboard.writeText(text);
+  }
+}
